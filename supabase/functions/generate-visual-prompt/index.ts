@@ -73,20 +73,23 @@ serve(async (req) => {
 
     // Generate visual prompt using Groq
     const systemPrompt = getVisualPromptSystemPrompt();
+    const sceneData = Array.isArray(shot.scenes) ? shot.scenes[0] : shot.scenes;
+    const projectData = Array.isArray(shot.projects) ? shot.projects[0] : shot.projects;
+    
     const userPrompt = getVisualPromptUserPrompt(
       shot.prompt_idea,
       shot.shot_type,
       {
-        description: shot.scenes.description,
-        location: shot.scenes.location,
-        lighting: shot.scenes.lighting,
-        weather: shot.scenes.weather
+        description: sceneData?.description,
+        location: sceneData?.location,
+        lighting: sceneData?.lighting,
+        weather: sceneData?.weather
       },
       {
-        genre: shot.projects.genre,
-        tone: shot.projects.tone,
-        video_style: shot.projects.video_style,
-        cinematic_inspiration: shot.projects.cinematic_inspiration
+        genre: projectData?.genre,
+        tone: projectData?.tone,
+        video_style: projectData?.video_style,
+        cinematic_inspiration: projectData?.cinematic_inspiration
       }
     );
 
@@ -165,9 +168,11 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error(`[generate-visual-prompt][Shot ${shotId || 'UNKNOWN'}] Unexpected error: ${error.message}`, error.stack);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error(`[generate-visual-prompt][Shot ${shotId || 'UNKNOWN'}] Unexpected error: ${errorMsg}`, errorStack);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: errorMsg }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
