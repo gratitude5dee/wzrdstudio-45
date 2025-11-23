@@ -1712,7 +1712,7 @@ export type Database = {
           generation_error: string | null
           generation_time_ms: number | null
           id: string
-          image_url: string
+          image_url: string | null
           judge_confidence: string | null
           judge_reasoning: string | null
           judge_score: number | null
@@ -1727,7 +1727,7 @@ export type Database = {
           generation_error?: string | null
           generation_time_ms?: number | null
           id?: string
-          image_url: string
+          image_url?: string | null
           judge_confidence?: string | null
           judge_reasoning?: string | null
           judge_score?: number | null
@@ -1742,7 +1742,7 @@ export type Database = {
           generation_error?: string | null
           generation_time_ms?: number | null
           id?: string
-          image_url?: string
+          image_url?: string | null
           judge_confidence?: string | null
           judge_reasoning?: string | null
           judge_score?: number | null
