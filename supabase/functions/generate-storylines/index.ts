@@ -218,7 +218,8 @@ serve(async (req) => {
               }
             }
           } catch (analysisError) {
-            console.warn('Failed to analyze storyline:', analysisError.message);
+            const errorMsg = analysisError instanceof Error ? analysisError.message : 'Unknown error';
+            console.warn('Failed to analyze storyline:', errorMsg);
           }
         }
 
@@ -343,7 +344,7 @@ serve(async (req) => {
           await updateProjectSettings(supabaseClient, project_id, updatedSettings);
 
           // Trigger character image generation
-          if (analysisData?.characters?.length > 0) {
+          if (analysisData?.characters && analysisData.characters.length > 0) {
             const { data: characters } = await supabaseClient
               .from('characters')
               .select('id, name')
@@ -358,13 +359,14 @@ serve(async (req) => {
         console.log('Background storyline generation completed successfully');
 
       } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         console.error('Background generation error:', error);
         if (storyline_id) {
           await supabaseClient
             .from('storylines')
             .update({ 
               status: 'failed', 
-              failure_reason: error.message 
+              failure_reason: errorMsg 
             })
             .eq('id', storyline_id);
         }
@@ -372,7 +374,11 @@ serve(async (req) => {
     })();
 
     // Use EdgeRuntime.waitUntil to keep function alive for background processing
-    EdgeRuntime.waitUntil(backgroundProcessing);
+    // @ts-ignore - EdgeRuntime is available in Deno Deploy
+    if (typeof EdgeRuntime !== 'undefined') {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(backgroundProcessing);
+    }
 
     // Return immediately with 202 Accepted
     return successResponse({
@@ -382,6 +388,7 @@ serve(async (req) => {
     }, 202);
 
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Internal server error';
     console.error('Error in generate-storylines function:', error);
     if (error instanceof AuthError) {
       return errorResponse(error.message, 401);
@@ -390,6 +397,6 @@ serve(async (req) => {
       console.error('JSON Parsing Error:', error.message);
       return errorResponse('Failed to parse request body or API response', 400, { detail: error.message });
     }
-    return errorResponse(error.message || 'Internal server error', 500);
+    return errorResponse(errorMsg, 500);
   }
 });

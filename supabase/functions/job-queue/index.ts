@@ -171,9 +171,10 @@ serve(async (req) => {
     }
 
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Job queue error';
     console.error('Job queue error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: errorMsg }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

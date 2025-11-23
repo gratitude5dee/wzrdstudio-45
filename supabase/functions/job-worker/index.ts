@@ -182,20 +182,12 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Job processing failed';
     console.error('Job processing error:', error);
     
-    // If a specific job failed, update its status
-    if (error instanceof Error) {
-      await supabase
-        .from('job_queue')
-        .update({ 
-          status: 'failed', 
-          last_error: error.message,
-          attempts: error.attempts ? error.attempts + 1 : 1
-        })
-        .eq('id', error.jobId);
-    }
+    // Note: Cannot update job status here as we don't have job context
+    // Job status should be updated by the caller
 
-    return errorResponse(error.message || 'Job processing failed', 500);
+    return errorResponse(errorMsg, 500);
   }
 });

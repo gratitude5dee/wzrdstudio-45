@@ -91,27 +91,28 @@ serve(async (req) => {
 
       // Check various possible response structures
       if (result.success && result.data) {
+        const data = result.data as any;
         // Format 1: result.data.video.url
-        if (result.data.video?.url) {
-          videoUrl = result.data.video.url;
-          videoDuration = result.data.video.duration;
-          videoFrames = result.data.video.frames;
+        if (data.video?.url) {
+          videoUrl = data.video.url;
+          videoDuration = data.video.duration;
+          videoFrames = data.video.frames;
         }
         // Format 2: result.data.url (direct video URL)
-        else if (result.data.url) {
-          videoUrl = result.data.url;
-          videoDuration = result.data.duration;
-          videoFrames = result.data.frames;
+        else if (data.url) {
+          videoUrl = data.url;
+          videoDuration = data.duration;
+          videoFrames = data.frames;
         }
         // Format 3: result.data is the video URL string
         else if (typeof result.data === 'string' && result.data.startsWith('http')) {
           videoUrl = result.data;
         }
         // Format 4: Check if data has a videos array
-        else if (result.data.videos && result.data.videos.length > 0) {
-          videoUrl = result.data.videos[0].url;
-          videoDuration = result.data.videos[0].duration;
-          videoFrames = result.data.videos[0].frames;
+        else if (data.videos && data.videos.length > 0) {
+          videoUrl = data.videos[0].url;
+          videoDuration = data.videos[0].duration;
+          videoFrames = data.videos[0].frames;
         }
       }
 
@@ -172,17 +173,19 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       console.error(`[Shot ${shot_id}] Error in generate-video-from-image: ${error}`);
       
       return new Response(
-        JSON.stringify({ success: false, error: error.message }),
+        JSON.stringify({ success: false, error: errorMsg }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
   } catch (error) {
-    console.error(`Unexpected error: ${error.message}`);
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Unexpected error: ${errorMsg}`);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: errorMsg }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

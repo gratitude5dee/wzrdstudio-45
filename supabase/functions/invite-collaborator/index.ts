@@ -192,12 +192,13 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Failed to invite collaborator';
     console.error('Invite collaborator error:', error);
 
     if (error instanceof AuthError) {
       return errorResponse(error.message, 401);
     }
 
-    return errorResponse(error.message || 'Failed to invite collaborator', 500);
+    return errorResponse(errorMsg, 500);
   }
 });

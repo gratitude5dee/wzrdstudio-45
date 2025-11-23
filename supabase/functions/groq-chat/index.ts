@@ -18,8 +18,9 @@ serve(async (req) => {
       try {
         await authenticateRequest(req.headers);
       } catch (authError) {
-        console.error('Authentication error:', authError.message);
-        return errorResponse(authError.message, 401);
+        const errorMsg = authError instanceof Error ? authError.message : 'Authentication failed';
+        console.error('Authentication error:', errorMsg);
+        return errorResponse(errorMsg, 401);
       }
     }
 
@@ -84,7 +85,8 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Internal server error';
     console.error('Error in groq-chat function:', error);
-    return errorResponse(error.message || 'Internal server error', 500);
+    return errorResponse(errorMsg, 500);
   }
 });
