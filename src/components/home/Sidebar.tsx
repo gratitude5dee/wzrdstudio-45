@@ -52,7 +52,7 @@ export const Sidebar = ({ activeView, onViewChange }: SidebarProps) => {
               key={item.id}
               onClick={() => {
                 if (item.isRoute) {
-                  navigate('/kanvas');
+                  navigate(`/${item.id}`);
                 } else {
                   onViewChange(item.id);
                 }
