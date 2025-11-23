@@ -22,6 +22,8 @@ export function useArenaEvaluation() {
   const [currentRun, setCurrentRun] = useState<EvaluationRun | null>(null);
   const [results, setResults] = useState<EvaluationResult[] | null>(null);
 
+  const resetResults = () => setResults(null);
+
   const runEvaluation = async (params: RunEvaluationParams) => {
     setIsRunning(true);
     setProgress(0);
@@ -51,7 +53,7 @@ export function useArenaEvaluation() {
           return;
         }
 
-        setCurrentRun(run);
+        setCurrentRun(run as EvaluationRun);
         setProgress(run.progress || 0);
 
         if (run.status === 'completed') {
@@ -64,7 +66,10 @@ export function useArenaEvaluation() {
             .eq('run_id', runId);
 
           if (!resultsError && resultData) {
-            setResults(resultData as EvaluationResult[]);
+            setResults(resultData.map(r => ({
+              ...r,
+              criteria_breakdown: r.criteria_breakdown as any
+            })) as EvaluationResult[]);
             toast.success('Evaluation complete!');
           }
           
@@ -97,6 +102,7 @@ export function useArenaEvaluation() {
     isRunning,
     progress,
     currentRun,
-    results
+    results,
+    resetResults
   };
 }

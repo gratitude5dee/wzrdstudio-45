@@ -20,7 +20,7 @@ export default function ArenaPage() {
   const [guidanceScale, setGuidanceScale] = useState(3.5);
   const [seed, setSeed] = useState<number | undefined>(undefined);
 
-  const { runEvaluation, results, isRunning, progress } = useArenaEvaluation();
+  const { runEvaluation, results, isRunning, progress, resetResults } = useArenaEvaluation();
 
   const handleRunEvaluation = async () => {
     if (selectedModels.length === 0 || selectedTests.length === 0) {
@@ -101,8 +101,11 @@ export default function ArenaPage() {
                       checked={selectedModels.includes(model.id)}
                       onCheckedChange={() => toggleModel(model.id)}
                     />
-                    <Label htmlFor={model.id} className="cursor-pointer">
+                    <Label htmlFor={model.id} className="cursor-pointer flex items-center gap-2">
                       {model.name}
+                      {model.isBeta && (
+                        <Badge variant="secondary" className="text-xs">BETA</Badge>
+                      )}
                     </Label>
                   </div>
                 ))}
@@ -220,7 +223,7 @@ export default function ArenaPage() {
                 Generated and judged {results.length} images across {selectedTests.length} tests
               </p>
               <div className="flex gap-4 justify-center">
-                <Button onClick={() => setResults(null)}>
+                <Button onClick={resetResults}>
                   Run New Evaluation
                 </Button>
                 <Button variant="outline">
