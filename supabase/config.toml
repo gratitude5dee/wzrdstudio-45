@@ -1,0 +1,25 @@
+project_id = "ixkkrousepsiorwlaycp"
+
+[functions.studio-save-state]
+verify_jwt = false
+
+[functions.studio-load-state]
+verify_jwt = false
+
+[functions.gemini-text-generation]
+verify_jwt = false
+
+[functions.gemini-image-generation]
+verify_jwt = false
+
+[functions.gemini-video-generation]
+verify_jwt = false
+
+[functions.gemini-storyline-generation]
+verify_jwt = false
+
+[functions.generate-concept-examples]
+verify_jwt = false
+
+[functions.generate-character-image]
+verify_jwt = false
