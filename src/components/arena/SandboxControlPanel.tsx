@@ -106,8 +106,20 @@ export default function SandboxControlPanel({
                 <div className="text-sm text-white truncate">{model.name}</div>
                 <div className="text-xs text-zinc-500 truncate">{model.id}</div>
               </div>
-              {model.isBeta && (
-                <Badge className="bg-green-500/20 text-green-300 text-xs shrink-0">1 free</Badge>
+              {model.isAlpha && (
+                <Badge className="bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs shrink-0">
+                  ALPHA
+                </Badge>
+              )}
+              {model.isBeta && !model.isAlpha && (
+                <Badge className="bg-orange-500/20 text-orange-300 border border-orange-400/30 text-xs shrink-0">
+                  BETA
+                </Badge>
+              )}
+              {model.isFree && (
+                <Badge className="bg-green-500/20 text-green-300 text-xs shrink-0 ml-1">
+                  1 free
+                </Badge>
               )}
             </label>
           ))}

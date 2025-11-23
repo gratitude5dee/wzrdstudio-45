@@ -125,11 +125,23 @@ export default function TestingSuiteTab() {
                             checked={selectedModels.includes(model.id)}
                             className="data-[state=checked]:bg-cosmic-stellar data-[state=checked]:border-cosmic-stellar pointer-events-none"
                           />
-                          {model.isBeta && (
-                            <Badge className="bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs">
-                              BETA
-                            </Badge>
-                          )}
+                          <div className="flex items-center gap-1">
+                            {model.isAlpha && (
+                              <Badge className="bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs shrink-0">
+                                ALPHA
+                              </Badge>
+                            )}
+                            {model.isBeta && !model.isAlpha && (
+                              <Badge className="bg-orange-500/20 text-orange-300 border border-orange-400/30 text-xs shrink-0">
+                                BETA
+                              </Badge>
+                            )}
+                            {model.isFree && (
+                              <Badge className="bg-green-500/20 text-green-300 border border-green-400/30 text-xs shrink-0">
+                                1 free
+                              </Badge>
+                            )}
+                          </div>
                         </div>
 
                         <div className="space-y-1">
