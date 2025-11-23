@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getErrorMessage } from '../_shared/error-utils.ts';
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
@@ -119,7 +120,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Auth middleware error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: getErrorMessage(error) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
