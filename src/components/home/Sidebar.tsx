@@ -1,4 +1,4 @@
-import { Grid, Users, Globe, Star, Settings, HelpCircle, ChevronDown, LogOut, Layers } from 'lucide-react';
+import { Grid, Users, Globe, Star, Settings, HelpCircle, ChevronDown, LogOut, Layers, Trophy } from 'lucide-react';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import CreditsDisplay from '../CreditsDisplay';
 import { Badge } from '@/components/ui/badge';
