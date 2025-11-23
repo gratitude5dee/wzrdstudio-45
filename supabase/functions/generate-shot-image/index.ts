@@ -151,53 +151,38 @@ serve(async (req) => {
     console.log(`[generate-shot-image][Shot ${shotId}] Using aspect ratio: ${aspectRatio}, FAL image size:`, falImageSize);
 
     try {
-      // Use Lovable AI Gateway with Gemini 2.5 Flash Image (Nano banana)
-      console.log(`[generate-shot-image][Shot ${shotId}] Calling Lovable AI Gateway with Nano banana...`);
+      // Use FAL.AI with beta-image-232
+      console.log(`[generate-shot-image][Shot ${shotId}] Calling FAL.AI with beta-image-232...`);
       
-      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-      if (!LOVABLE_API_KEY) {
-        throw new Error('LOVABLE_API_KEY not configured');
-      }
-
-      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image-preview',
-          messages: [
-            { role: 'user', content: shot.visual_prompt }
-          ],
-          modalities: ['image', 'text']
-        }),
+      const { data: functionData, error: functionError } = await supabase.functions.invoke('falai-image-generation', {
+        body: {
+          prompt: shot.visual_prompt,
+          image_size: typeof falImageSize === 'string' ? falImageSize : `${falImageSize.width}x${falImageSize.height}`,
+          model_id: 'fal-ai/beta-image-232',
+          num_inference_steps: 30,
+          guidance_scale: 3.5,
+          enable_safety_checker: true
+        }
       });
 
-      if (!aiResponse.ok) {
-        const errorText = await aiResponse.text();
-        console.error(`[generate-shot-image][Shot ${shotId}] AI Gateway error: ${aiResponse.status} - ${errorText}`);
-        if (aiResponse.status === 429) {
-          throw new Error('Rate limit exceeded. Please try again later.');
-        }
-        if (aiResponse.status === 402) {
-          throw new Error('Credits exhausted. Please add credits to your workspace.');
-        }
-        throw new Error(`AI Gateway error: ${aiResponse.status}`);
+      if (functionError || !functionData?.success) {
+        console.error(`[generate-shot-image][Shot ${shotId}] FAL.AI error:`, functionError || functionData?.error);
+        throw new Error(functionData?.error || functionError?.message || 'FAL.AI generation failed');
       }
 
-      const aiData = await aiResponse.json();
-      const base64Image = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-      if (!base64Image) {
-        throw new Error('No image returned from AI Gateway');
+      const imageUrl = functionData.data?.images?.[0]?.url;
+      if (!imageUrl) {
+        throw new Error('No image URL returned from FAL.AI');
       }
 
-      console.log(`[generate-shot-image][Shot ${shotId}] Image generated successfully, uploading to storage...`);
+      console.log(`[generate-shot-image][Shot ${shotId}] Image generated successfully, downloading and uploading to storage...`);
 
-      // Extract base64 data (remove data:image/png;base64, prefix if present)
-      const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
-      const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      // Download the image from FAL.AI URL
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to download image from FAL.AI: ${imageResponse.statusText}`);
+      }
+      const imageBuffer = new Uint8Array(await imageResponse.arrayBuffer());
       
       const fileName = `shot-${shotId}-${Date.now()}.png`;
       
@@ -243,7 +228,8 @@ serve(async (req) => {
       );
 
     } catch (error) {
-      console.error(`[generate-shot-image][Shot ${shotId}] Error in image generation: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`[generate-shot-image][Shot ${shotId}] Error in image generation: ${errorMessage}`);
       
       // Update shot status to failed
       console.log(`[generate-shot-image][Shot ${shotId}] Updating status to 'failed' due to error.`);
@@ -251,21 +237,22 @@ serve(async (req) => {
         .from("shots")
         .update({ 
           image_status: "failed",
-          failure_reason: error.message
+          failure_reason: errorMessage
         })
         .eq("id", shotId);
         
-      console.log(`[generate-shot-image][Shot ${shotId}] Status updated to 'failed' with reason: ${error.message}`);
+      console.log(`[generate-shot-image][Shot ${shotId}] Status updated to 'failed' with reason: ${errorMessage}`);
 
       return new Response(
-        JSON.stringify({ success: false, error: error.message }),
+        JSON.stringify({ success: false, error: errorMessage }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
   } catch (error) {
-    console.error(`[generate-shot-image][Shot ${shotId || 'UNKNOWN'}] Unexpected error: ${error.message}`, error.stack);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`[generate-shot-image][Shot ${shotId || 'UNKNOWN'}] Unexpected error: ${errorMessage}`, error instanceof Error ? error.stack : '');
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

@@ -39,7 +39,8 @@ async function fetchWithRetry(
     } catch (error) {
       if (attempt < retries - 1) {
         const backoffMs = Math.min(1000 * Math.pow(2, attempt), 5000);
-        console.log(`Request error: ${error.message}, retrying in ${backoffMs}ms... (attempt ${attempt + 1}/${retries})`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.log(`Request error: ${errorMessage}, retrying in ${backoffMs}ms... (attempt ${attempt + 1}/${retries})`);
         await new Promise(resolve => setTimeout(resolve, backoffMs));
         continue;
       }
@@ -63,7 +64,12 @@ interface CharacterData {
     tone?: string | null;
     video_style?: string | null;
     cinematic_inspiration?: string | null;
-  }
+  } | {
+    genre?: string | null;
+    tone?: string | null;
+    video_style?: string | null;
+    cinematic_inspiration?: string | null;
+  }[]
 }
 
 serve(async (req) => {
@@ -122,10 +128,11 @@ serve(async (req) => {
     }
 
     const visualPromptSystem = getCharacterVisualSystemPrompt();
+    const projectData = Array.isArray(charData.project) ? charData.project[0] : charData.project;
     const visualPromptUser = getCharacterVisualUserPrompt(
       charData.name,
       charData.description,
-      charData.project
+      projectData
     );
 
     const promptResponse = await fetchWithRetry('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -160,37 +167,31 @@ serve(async (req) => {
 
     console.log(`Generated visual prompt: ${visualPrompt}`);
 
-    // 3. Generate Image using Lovable AI with Nano banana
-    console.log('Calling Lovable AI Gateway with Nano banana for image generation...');
+    // 3. Generate Image using FAL.AI with beta-image-232
+    console.log('Calling FAL.AI with beta-image-232 for character image generation...');
     
-    const imageResponse = await fetchWithRetry('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          { role: 'user', content: visualPrompt }
-        ],
-        modalities: ['image', 'text']
-      }),
-    }, 3, 30000);
+    const { data: functionData, error: functionError } = await supabaseClient.functions.invoke('falai-image-generation', {
+      body: {
+        prompt: visualPrompt,
+        image_size: '1024x1024',
+        model_id: 'fal-ai/beta-image-232',
+        num_inference_steps: 30,
+        guidance_scale: 3.5,
+        enable_safety_checker: true
+      }
+    });
 
-    if (!imageResponse.ok) {
-      console.error('Failed to generate character image:', imageResponse.status);
-      return errorResponse('Failed to generate character image', 500);
+    if (functionError || !functionData?.success) {
+      console.error('FAL.AI generation failed:', functionError || functionData?.error);
+      return errorResponse(functionData?.error || functionError?.message || 'Failed to generate character image', 500);
     }
 
-    const imageData = await imageResponse.json();
-    const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
+    const imageUrl = functionData.data?.images?.[0]?.url;
     if (!imageUrl) {
-      console.error('No image URL returned');
+      console.error('No image URL returned from FAL.AI');
       return errorResponse('Failed to generate character image', 500);
     }
-    console.log(`Generated Image URL (base64): ${imageUrl.substring(0, 50)}...`);
+    console.log(`Generated Image URL from FAL.AI: ${imageUrl.substring(0, 50)}...`);
 
     // 4. Return immediate response and update DB in background
     const successResponseData = { 
@@ -243,6 +244,8 @@ serve(async (req) => {
   } catch (error) {
     console.error(`Error in generate-character-image:`, error);
     
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
     // Update character status to failed
     try {
       const { character_id } = await req.json();
@@ -251,7 +254,7 @@ serve(async (req) => {
           .from('characters')
           .update({ 
             image_status: 'failed',
-            image_generation_error: error.message || 'Unknown error'
+            image_generation_error: errorMessage
           })
           .eq('id', character_id);
       }
@@ -259,7 +262,7 @@ serve(async (req) => {
       console.error('Failed to update character error status:', updateError);
     }
     
-    return errorResponse(error.message || 'Failed to generate character image', 500);
+    return errorResponse(errorMessage || 'Failed to generate character image', 500);
   }
 });
 
