@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useArenaEvaluation } from '@/hooks/useArenaEvaluation';
 import { WZRD_TEST_SUITE, ARENA_MODELS } from '@/lib/arena/test-suites';
-import { Loader2, Image, Layers, Compass, Hash, Trophy, Download, RefreshCw, BarChart, Rocket, Clock, DollarSign } from 'lucide-react';
+import { Loader2, Image, Layers, Compass, Hash, Trophy, Download, RefreshCw, BarChart, Rocket, Clock, DollarSign, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -23,12 +23,25 @@ export default function TestingSuiteTab() {
   const [steps, setSteps] = useState(30);
   const [guidanceScale, setGuidanceScale] = useState(3.5);
   const [seed, setSeed] = useState<number | undefined>(undefined);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
   const { runEvaluation, results, isRunning, progress, resetResults } = useArenaEvaluation();
 
   const handleRunEvaluation = async () => {
     if (selectedModels.length === 0 || selectedTests.length === 0) {
       toast.error('Please select at least one model and one test');
+      return;
+    }
+
+    // Check if any selected models are image editing models
+    const hasEditingModels = selectedModels.some(modelId => {
+      const model = ARENA_MODELS[modelId];
+      return model?.category === 'image-editing';
+    });
+
+    // Require image upload for editing models
+    if (hasEditingModels && !uploadedImage) {
+      toast.error('Please upload an image to use with image editing models');
       return;
     }
 
@@ -159,6 +172,61 @@ export default function TestingSuiteTab() {
               </div>
             </GlassCardContent>
           </GlassCard>
+
+          {/* Image Upload for Editing Models */}
+          {selectedModels.some(modelId => ARENA_MODELS[modelId]?.category === 'image-editing') && (
+            <GlassCard variant="void" depth="medium" glow="subtle" shimmer>
+              <GlassCardHeader>
+                <GlassCardTitle className="text-xl glow-text-primary flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center">
+                    <Upload className="w-4 h-4 text-blue-300" />
+                  </div>
+                  Upload Base Image (Required for Editing Models)
+                </GlassCardTitle>
+              </GlassCardHeader>
+
+              <GlassCardContent>
+                {!uploadedImage ? (
+                  <div className="relative group">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            setUploadedImage(event.target?.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div className="border-2 border-dashed border-zinc-700 rounded-lg p-12 text-center hover:border-blue-500/50 hover:bg-blue-500/5 transition-all duration-300">
+                      <Upload className="w-12 h-12 mx-auto mb-4 text-zinc-500 group-hover:text-blue-400 transition-colors" />
+                      <p className="text-zinc-400 mb-2">Click to upload or drag and drop</p>
+                      <p className="text-xs text-zinc-600">PNG, JPG, WEBP up to 20MB</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative rounded-lg overflow-hidden border border-zinc-700/50">
+                    <img 
+                      src={uploadedImage} 
+                      alt="Uploaded base image" 
+                      className="w-full h-auto"
+                    />
+                    <button
+                      onClick={() => setUploadedImage(null)}
+                      className="absolute top-2 right-2 p-2 bg-red-500/80 hover:bg-red-600 rounded-lg transition-colors"
+                    >
+                      <X className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+                )}
+              </GlassCardContent>
+            </GlassCard>
+          )}
 
           {/* Step 2: Test Selection */}
           <GlassCard variant="nebula" depth="deep" glow="medium" shimmer>
