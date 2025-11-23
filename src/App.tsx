@@ -17,6 +17,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Credits = lazy(() => import("./pages/Credits"));
 const ProjectSetup = lazy(() => import("./pages/ProjectSetup"));
 const StudioPage = lazy(() => import("./pages/StudioPage"));
+const ArenaPage = lazy(() => import("./pages/ArenaPage"));
 const LearningStudioPage = lazy(() => import("./pages/LearningStudioPage"));
 const StoryboardPage = lazy(() => import("./pages/StoryboardPage"));
 const EditorPage = lazy(() => import("./pages/EditorPage"));
@@ -160,6 +161,14 @@ const App = () => {
                     element={
                       <ProtectedRoute>
                         <KanvasPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/arena"
+                    element={
+                      <ProtectedRoute>
+                        <ArenaPage />
                       </ProtectedRoute>
                     }
                   />
