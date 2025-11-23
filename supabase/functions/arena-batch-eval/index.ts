@@ -197,20 +197,39 @@ async function processEvaluation(
 
       const judgeResult = await judgeResponse.json();
 
-      const resultsToInsert = successfulGenerations.map(gen => {
-        const modelScore = judgeResult.model_scores[gen.model_id];
-        return {
+      // Insert both successful and failed results
+      const resultsToInsert = [
+        ...successfulGenerations.map(gen => {
+          const modelScore = judgeResult.model_scores[gen.model_id];
+          return {
+            run_id: runId,
+            test_id: testId,
+            model_id: gen.model_id,
+            image_url: gen.image_url!,
+            generation_time_ms: gen.generation_time_ms,
+            judge_score: modelScore?.overall_score,
+            judge_reasoning: modelScore?.reasoning,
+            judge_confidence: modelScore?.confidence,
+            criteria_breakdown: modelScore?.criteria,
+            detailed_reasoning: modelScore?.detailed_reasoning,
+            generation_error: null
+          };
+        }),
+        // Add failed generations
+        ...generations.filter(g => !g.image_url).map(gen => ({
           run_id: runId,
           test_id: testId,
           model_id: gen.model_id,
-          image_url: gen.image_url!,
+          image_url: null,
           generation_time_ms: gen.generation_time_ms,
-          judge_score: modelScore?.overall_score,
-          judge_reasoning: modelScore?.reasoning,
-          judge_confidence: modelScore?.confidence,
-          criteria_breakdown: modelScore?.criteria
-        };
-      });
+          judge_score: null,
+          judge_reasoning: null,
+          judge_confidence: null,
+          criteria_breakdown: null,
+          detailed_reasoning: null,
+          generation_error: gen.error
+        }))
+      ];
 
       const { error: insertError } = await supabase
         .from('evaluation_results')

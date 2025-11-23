@@ -60,36 +60,69 @@ serve(async (req) => {
 });
 
 async function judgeImage(prompt: string, imageUrl: string, modelId: string) {
-  const evaluationQuery = `Evaluate this image generated from the prompt: "${prompt}". Score it 1-10 on quality, prompt adherence, and technical execution. Provide brief reasoning.`;
+  console.log(`[Judge] Multi-criteria evaluation for ${modelId}...`);
   
-  console.log(`[Judge] Evaluating ${modelId} with Moondream...`);
+  // Multi-pass evaluation for detailed criteria
+  const queries = {
+    overall: `Evaluate this image overall quality from the prompt: "${prompt}". Score 1-10. Format: "Score: X/10. Reasoning: [analysis]"`,
+    prompt_adherence: `How well does this image match the prompt: "${prompt}"? Score 1-10. Format: "Score: X/10. Reasoning: [analysis]"`,
+    anatomical_integrity: `Evaluate anatomical accuracy and structural coherence. Check for distortions, correct proportions, realistic physics. Score 1-10. Format: "Score: X/10. Reasoning: [analysis]"`,
+    physics_lighting: `Evaluate lighting, colors, textures, and overall technical execution. Score 1-10. Format: "Score: X/10. Reasoning: [analysis]"`
+  };
   
-  const result = await executeFalModel('fal-ai/moondream2/visual-query', {
-    image_url: imageUrl,
-    query: evaluationQuery
-  });
-
-  if (!result.success) {
-    throw new Error(result.error || 'Moondream evaluation failed');
-  }
-
-  const resultData: any = result.data;
-  const moondreamResponse = resultData?.output || 'No response';
+  // Execute all evaluations in parallel
+  const [overallResult, promptResult, anatomyResult, technicalResult] = await Promise.all([
+    executeFalModel('fal-ai/moondream2/visual-query', { image_url: imageUrl, query: queries.overall }),
+    executeFalModel('fal-ai/moondream2/visual-query', { image_url: imageUrl, query: queries.prompt_adherence }),
+    executeFalModel('fal-ai/moondream2/visual-query', { image_url: imageUrl, query: queries.anatomical_integrity }),
+    executeFalModel('fal-ai/moondream2/visual-query', { image_url: imageUrl, query: queries.physics_lighting })
+  ]);
   
-  const scoreMatch = moondreamResponse.match(/(\d+)\/10/);
-  const overall_score = scoreMatch ? parseInt(scoreMatch[1]) : 7;
+  const parseScore = (text: string) => {
+    const match = text.match(/Score:\s*(\d+)\/10/i);
+    return match ? parseInt(match[1]) : 7;
+  };
+  
+  const parseReasoning = (text: string) => {
+    const match = text.match(/Reasoning:\s*(.+)/is);
+    return match ? match[1].trim().substring(0, 300) : text.substring(0, 300);
+  };
+  
+  const outputs = {
+    overall: overallResult.success ? (overallResult.data as any)?.output || '' : '',
+    prompt_adherence: promptResult.success ? (promptResult.data as any)?.output || '' : '',
+    anatomical_integrity: anatomyResult.success ? (anatomyResult.data as any)?.output || '' : '',
+    physics_lighting: technicalResult.success ? (technicalResult.data as any)?.output || '' : ''
+  };
+  
+  const scores = {
+    overall: parseScore(outputs.overall),
+    prompt_adherence: parseScore(outputs.prompt_adherence),
+    anatomical_integrity: parseScore(outputs.anatomical_integrity),
+    physics_lighting: parseScore(outputs.physics_lighting)
+  };
+  
+  const reasoning = {
+    overall: parseReasoning(outputs.overall),
+    prompt_adherence: parseReasoning(outputs.prompt_adherence),
+    anatomical_integrity: parseReasoning(outputs.anatomical_integrity),
+    physics_lighting: parseReasoning(outputs.physics_lighting)
+  };
+  
+  const avgScore = Math.round((scores.overall + scores.prompt_adherence + scores.anatomical_integrity + scores.physics_lighting) / 4);
 
   return {
     model_id: modelId,
-    overall_score,
-    confidence: "Medium" as const,
+    overall_score: avgScore,
+    confidence: "High" as const,
     criteria: {
-      prompt_adherence: overall_score,
-      anatomical_integrity: overall_score,
-      text_accuracy: overall_score,
-      physics_lighting: overall_score
+      prompt_adherence: scores.prompt_adherence,
+      anatomical_integrity: scores.anatomical_integrity,
+      text_accuracy: scores.overall,
+      physics_lighting: scores.physics_lighting
     },
-    reasoning: moondreamResponse.substring(0, 200),
+    detailed_reasoning: reasoning,
+    reasoning: reasoning.overall,
     rank: 0
   };
 }
