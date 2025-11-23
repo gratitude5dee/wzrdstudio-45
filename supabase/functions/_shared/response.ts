@@ -1,3 +1,4 @@
+import { getErrorMessage } from './error-utils.ts';
 
 // Standard CORS headers for all responses
 export const corsHeaders = {
@@ -8,12 +9,13 @@ export const corsHeaders = {
 
 /**
  * Creates a standardized error response
- * @param message Error message
+ * @param error Error message string or unknown error object
  * @param status HTTP status code
  * @param details Optional error details
  * @returns Response object with error details and CORS headers
  */
-export function errorResponse(message: string, status = 400, details?: any) {
+export function errorResponse(error: string | unknown, status = 400, details?: any) {
+  const message = typeof error === 'string' ? error : getErrorMessage(error);
   return new Response(
     JSON.stringify({
       error: message,

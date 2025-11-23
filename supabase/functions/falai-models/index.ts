@@ -54,7 +54,7 @@ serve(async (req) => {
 
     // Filter by search term
     if (search) {
-      filteredModels = filteredModels.filter(model =>
+      filteredModels = filteredModels.filter((model: any) =>
         model.name.toLowerCase().includes(search.toLowerCase()) ||
         model.description.toLowerCase().includes(search.toLowerCase())
       );
@@ -74,13 +74,14 @@ serve(async (req) => {
       categories: Object.keys(FAL_MODELS_BY_CATEGORY),
     });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to get models';
     console.error('Edge function error:', error);
     
     if (error instanceof AuthError) {
       return errorResponse(error.message, 401);
     }
     
-    return errorResponse(error.message || 'Failed to get models', 500);
+    return errorResponse(errorMessage, 500);
   }
 });
 
