@@ -158,11 +158,13 @@ const CATEGORY_MAP: Record<GenerationType, string> = {
 
 const FALLBACK_MODELS: Record<GenerationType, FalModel[]> = {
   image: [
+    { id: 'fal-ai/beta-image-232', name: 'Beta-232 (Primary)' },
     { id: 'fal-ai/flux/dev', name: 'FLUX Dev (Image)' },
     { id: 'fal-ai/flux-1/schnell', name: 'FLUX Schnell (Fast Image)' },
     { id: 'fal-ai/ideogram/v3', name: 'Ideogram V3' },
   ],
   video: [
+    { id: 'fal-ai/ltxv-2/image-to-video/fast', name: 'LTX Video 2.0 Fast (Primary)' },
     { id: 'fal-ai/magi', name: 'MAGI-1 (Text to Video)' },
     { id: 'fal-ai/magi/image-to-video', name: 'MAGI-1 (Image to Video)' },
     { id: 'fal-ai/kling-video/v2/master/text-to-video', name: 'Kling V2 (Text to Video)' },
@@ -198,7 +200,7 @@ const AIGenerationPanel: React.FC = () => {
 
   const [prompt, setPrompt] = useState('');
   const [generationType, setGenerationType] = useState<GenerationType>('image');
-  const [selectedModel, setSelectedModel] = useState<string>('fal-ai/flux/dev');
+  const [selectedModel, setSelectedModel] = useState<string>('fal-ai/beta-image-232');
   const [modelsByType, setModelsByType] = useState<Record<GenerationType, FalModel[]>>(FALLBACK_MODELS);
   const [loadingModels, setLoadingModels] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
