@@ -47,14 +47,16 @@ export function safeParseJson<T>(text: string): T | null {
     // First attempt: direct JSON parsing
     return JSON.parse(text);
   } catch (directError) {
-    console.error('Failed to parse JSON directly:', directError.message);
+    const errMsg = directError instanceof Error ? directError.message : 'Parse error';
+    console.error('Failed to parse JSON directly:', errMsg);
     
     try {
       // Second attempt: try to clean markdown formatting
       const cleanedText = text.replace(/```json\s+/g, '').replace(/```\s*$/g, '');
       return JSON.parse(cleanedText);
     } catch (markdownError) {
-      console.error('Failed to parse JSON after cleaning markdown:', markdownError.message);
+      const errMsg2 = markdownError instanceof Error ? markdownError.message : 'Parse error';
+      console.error('Failed to parse JSON after cleaning markdown:', errMsg2);
       
       try {
         // Third attempt: Try to extract JSON from a text block
@@ -63,7 +65,8 @@ export function safeParseJson<T>(text: string): T | null {
           return JSON.parse(jsonMatch[0]);
         }
       } catch (extractError) {
-        console.error('Failed to extract and parse JSON:', extractError.message);
+        const errMsg3 = extractError instanceof Error ? extractError.message : 'Parse error';
+        console.error('Failed to extract and parse JSON:', errMsg3);
       }
 
       console.error('Original content being parsed:', text);
