@@ -100,6 +100,6 @@ Focus on being helpful, clear, and concise. If there is current text provided, i
 
   } catch (error) {
     console.error('Error in generate-text-generic:', error);
-    return errorResponse(error.message || 'Internal server error', 500);
+    return errorResponse(error, 500);
   }
 });
