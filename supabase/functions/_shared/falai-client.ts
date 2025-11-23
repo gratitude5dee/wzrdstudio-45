@@ -422,9 +422,8 @@ export const FAL_MODELS_BY_CATEGORY = {
 };
 
 // Flatten all models for easy access (excluding 3D generation from general list)
-export const ALL_FAL_MODELS = Object.entries(FAL_MODELS_BY_CATEGORY)
-  .filter(([category]) => category !== '3d-generation')
-  .flatMap(([_, models]) => models);
+const modelEntries = Object.entries(FAL_MODELS_BY_CATEGORY).filter(([category]) => category !== '3d-generation');
+export const ALL_FAL_MODELS: any[] = modelEntries.reduce((acc: any[], [_, models]) => [...acc, ...models], []);
 
 // Legacy COMMON_MODELS for backward compatibility
 export const COMMON_MODELS: ModelInfo[] = [
@@ -555,7 +554,7 @@ export async function submitToFalQueue<T>(
     const requestId = submitResponse.requestId;
     if (!requestId) {
       // If no request ID, it was processed synchronously
-      return submitResponse;
+      return submitResponse as FalResponse<T>;
     }
     
     console.log(`[Fal Queue] Request ID: ${requestId}, polling for result...`);
