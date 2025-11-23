@@ -1704,6 +1704,101 @@ export type Database = {
           },
         ]
       }
+      evaluation_results: {
+        Row: {
+          created_at: string | null
+          criteria_breakdown: Json | null
+          generation_time_ms: number | null
+          id: string
+          image_url: string
+          judge_confidence: string | null
+          judge_reasoning: string | null
+          judge_score: number | null
+          model_id: string
+          run_id: string
+          test_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          criteria_breakdown?: Json | null
+          generation_time_ms?: number | null
+          id?: string
+          image_url: string
+          judge_confidence?: string | null
+          judge_reasoning?: string | null
+          judge_score?: number | null
+          model_id: string
+          run_id: string
+          test_id: string
+        }
+        Update: {
+          created_at?: string | null
+          criteria_breakdown?: Json | null
+          generation_time_ms?: number | null
+          id?: string
+          image_url?: string
+          judge_confidence?: string | null
+          judge_reasoning?: string | null
+          judge_score?: number | null
+          model_id?: string
+          run_id?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_results_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluation_runs: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          mode: string
+          models: string[]
+          parameters: Json | null
+          progress: number | null
+          status: string
+          tests: string[]
+          total_generations: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          mode?: string
+          models: string[]
+          parameters?: Json | null
+          progress?: number | null
+          status?: string
+          tests: string[]
+          total_generations?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          mode?: string
+          models?: string[]
+          parameters?: Json | null
+          progress?: number | null
+          status?: string
+          tests?: string[]
+          total_generations?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       event_assets: {
         Row: {
           ai_model_used: string | null

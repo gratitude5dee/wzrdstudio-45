@@ -29,6 +29,7 @@ export const Sidebar = ({ activeView, onViewChange }: SidebarProps) => {
   const navItems = [
     { id: 'all', label: 'All', icon: Grid },
     { id: 'kanvas', label: 'Kanvas', icon: Layers, isRoute: true, showBadge: true },
+    { id: 'arena', label: 'Arena', icon: Trophy, isRoute: true },
     { id: 'shared', label: 'Shared with me', icon: Users },
     { id: 'community', label: 'Community', icon: Globe },
   ];
