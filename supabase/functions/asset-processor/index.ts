@@ -6,9 +6,6 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import {
-  writableStreamFromWriter,
-} from "https://deno.land/std@0.177.0/streams/conversion.ts";
 import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
 
 const THUMBNAIL_BUCKET = "asset-thumbnails";
@@ -34,16 +31,8 @@ type ProcessingResult = {
 const MAX_THUMB_EDGE = 512;
 
 async function streamBlobToFile(blob: Blob, filePath: string) {
-  const file = await Deno.open(filePath, {
-    write: true,
-    create: true,
-    truncate: true,
-  });
-  try {
-    await blob.stream().pipeTo(writableStreamFromWriter(file));
-  } finally {
-    file.close();
-  }
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  await Deno.writeFile(filePath, bytes);
 }
 
 async function probeMedia(filePath: string) {
@@ -108,7 +97,7 @@ function buildPublicUrl(bucket: string | null, path: string | null) {
 }
 
 async function uploadFile(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: any,
   bucket: string,
   path: string,
   bytes: Uint8Array,
@@ -116,7 +105,7 @@ async function uploadFile(
 ) {
   const { error } = await supabaseAdmin.storage
     .from(bucket)
-    .upload(path, new Blob([bytes]), {
+    .upload(path, bytes, {
       contentType,
       upsert: true,
     });
@@ -127,7 +116,7 @@ async function uploadFile(
 }
 
 async function processImage(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: any,
   tempFilePath: string,
   assetId: string,
   mimeType: string | null,
@@ -171,7 +160,7 @@ function parseFrameRate(rate?: string) {
 }
 
 async function processVideo(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: any,
   tempDir: string,
   tempFilePath: string,
   assetId: string,
@@ -268,7 +257,7 @@ async function processVideo(
 }
 
 async function processAudio(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: any,
   tempDir: string,
   tempFilePath: string,
   assetId: string,
@@ -484,6 +473,7 @@ serve(async (req) => {
         results.push({ id: asset.id, status: "success" });
 
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(`Error processing asset ${asset.id}:`, error);
 
         // Update asset with error
@@ -491,7 +481,7 @@ serve(async (req) => {
           .from("project_assets")
           .update({
             processing_status: "failed",
-            processing_error: error.message,
+            processing_error: errorMessage,
           })
           .eq("id", asset.id);
 
@@ -500,12 +490,12 @@ serve(async (req) => {
           .from("processing_queue")
           .update({
             status: job.attempts + 1 >= 3 ? "failed" : "pending",
-            error_message: error.message,
+            error_message: errorMessage,
             completed_at: job.attempts + 1 >= 3 ? new Date().toISOString() : null,
           })
           .eq("id", job.id);
 
-        results.push({ id: asset.id, status: "failed", error: error.message });
+        results.push({ id: asset.id, status: "failed", error: errorMessage });
       }
     }
 
@@ -514,9 +504,10 @@ serve(async (req) => {
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error("Worker error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

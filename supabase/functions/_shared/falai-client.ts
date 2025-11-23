@@ -59,10 +59,11 @@ export async function executeFalModel<T>(
       logs: result.logs,
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     console.error('Fal.AI execution error:', error)
     return {
       success: false,
-      error: error.message || 'Unknown error occurred',
+      error: errorMessage,
     }
   }
 }
@@ -107,10 +108,11 @@ export async function pollFalStatus(requestId: string): Promise<FalResponse<any>
       },
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to poll fal.ai status';
     console.error('Fal.AI status check error:', error)
     return {
       success: false,
-      error: error.message || 'Failed to poll fal.ai status',
+      error: errorMessage,
     }
   }
 }
@@ -477,13 +479,13 @@ export const COMMON_MODELS: ModelInfo[] = [
 ];
 
 // Helper function to get models by category
-export function getModelsByCategory(category: string) {
-  return FAL_MODELS_BY_CATEGORY[category] || [];
+export function getModelsByCategory(category: string): any[] {
+  return (FAL_MODELS_BY_CATEGORY as any)[category] || [];
 }
 
 // Helper function to find a model by ID
-export function getModelById(id: string) {
-  return ALL_FAL_MODELS.find(model => model.id === id);
+export function getModelById(id: string): any {
+  return ALL_FAL_MODELS.find((model: any) => model.id === id);
 }
 
 // Fal.ai Model Constants for easy reference
@@ -597,10 +599,11 @@ export async function submitToFalQueue<T>(
     throw new Error(`Polling timeout after ${maxAttempts} attempts`);
     
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error in Fal queue processing';
     console.error('[Fal Queue] Error:', error);
     return {
       success: false,
-      error: error.message || 'Unknown error in Fal queue processing',
+      error: errorMessage,
     };
   }
 }
