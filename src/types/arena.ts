@@ -39,6 +39,13 @@ export interface EvaluationResult {
   judge_reasoning: string;
   judge_confidence: 'High' | 'Medium' | 'Low';
   criteria_breakdown: CriteriaScore;
+  detailed_reasoning?: {
+    overall: string;
+    prompt_adherence: string;
+    anatomical_integrity: string;
+    physics_lighting: string;
+  };
+  generation_error?: string;
   created_at: string;
 }
 

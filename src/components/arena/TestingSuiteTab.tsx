@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { GlassButton } from '@/components/ui/glass-button';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
 import { PortalHeader } from '@/components/ui/portal-header';
@@ -10,11 +10,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useArenaEvaluation } from '@/hooks/useArenaEvaluation';
 import { WZRD_TEST_SUITE, ARENA_MODELS } from '@/lib/arena/test-suites';
-import { Loader2, Image, Layers, Compass, Hash, Trophy, Download, RefreshCw, BarChart, Rocket, Clock, DollarSign, Upload, X } from 'lucide-react';
+import { Loader2, Image, Layers, Compass, Hash, Trophy, Download, RefreshCw, BarChart, Rocket, Clock, DollarSign, Upload, X, ChevronDown, FileText, Code, Archive, FileDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { ArenaExportService } from '@/services/arenaExportService';
+import { AnalyticsModal } from './AnalyticsModal';
+import { ResultCard } from './ResultCard';
+import { EvaluationResult } from '@/types/arena';
 
 export default function TestingSuiteTab() {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
@@ -24,8 +29,15 @@ export default function TestingSuiteTab() {
   const [guidanceScale, setGuidanceScale] = useState(3.5);
   const [seed, setSeed] = useState<number | undefined>(undefined);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  
+  // Results display state
+  const [resultsPage, setResultsPage] = useState(1);
+  const [resultsPerPage, setResultsPerPage] = useState(12);
+  const [showFailures, setShowFailures] = useState(false);
+  const [expandedResult, setExpandedResult] = useState<string | null>(null);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
-  const { runEvaluation, results, isRunning, progress, resetResults } = useArenaEvaluation();
+  const { runEvaluation, results, isRunning, progress, resetResults, currentRun } = useArenaEvaluation();
 
   const handleRunEvaluation = async () => {
     if (selectedModels.length === 0 || selectedTests.length === 0) {
@@ -45,6 +57,9 @@ export default function TestingSuiteTab() {
       return;
     }
 
+    setResultsPage(1);
+    setExpandedResult(null);
+
     await runEvaluation({
       model_ids: selectedModels,
       test_ids: selectedTests,
@@ -56,6 +71,33 @@ export default function TestingSuiteTab() {
         seed
       }
     });
+  };
+
+  const handleExport = async (format: 'csv' | 'json' | 'zip' | 'pdf') => {
+    if (!results || !currentRun) return;
+    
+    const loadingToast = toast.loading(`Exporting as ${format.toUpperCase()}...`);
+    
+    try {
+      switch (format) {
+        case 'csv':
+          await ArenaExportService.exportCSV(results, currentRun);
+          break;
+        case 'json':
+          await ArenaExportService.exportJSON(results, currentRun);
+          break;
+        case 'zip':
+          await ArenaExportService.exportZIP(results, currentRun);
+          break;
+        case 'pdf':
+          await ArenaExportService.exportPDF(results, currentRun);
+          break;
+      }
+      toast.success(`Exported successfully as ${format.toUpperCase()}`, { id: loadingToast });
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Export failed', { id: loadingToast });
+    }
   };
 
   const estimatedCost = selectedModels.length * selectedTests.length * 0.08;
@@ -530,104 +572,132 @@ export default function TestingSuiteTab() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-4 justify-center flex-wrap">
               <GlassButton variant="stellar" size="lg" onClick={resetResults}>
                 <RefreshCw className="w-5 h-5" />
                 New Evaluation
               </GlassButton>
 
-              <GlassButton variant="outline" size="lg">
-                <Download className="w-5 h-5" />
-                Export Results
-              </GlassButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <GlassButton variant="outline" size="lg">
+                    <Download className="w-5 h-5" />
+                    Export Results
+                    <ChevronDown className="w-4 h-4 ml-2" />
+                  </GlassButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-background/95 backdrop-blur-xl border-border">
+                  <DropdownMenuItem onClick={() => handleExport('csv')}>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('json')}>
+                    <Code className="w-4 h-4 mr-2" />
+                    Export as JSON
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('zip')}>
+                    <Archive className="w-4 h-4 mr-2" />
+                    Export with Images (ZIP)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                    <FileDown className="w-4 h-4 mr-2" />
+                    Export PDF Report
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-              <GlassButton variant="cosmic" size="lg">
+              <GlassButton variant="cosmic" size="lg" onClick={() => setShowAnalytics(true)}>
                 <BarChart className="w-5 h-5" />
                 View Analytics
               </GlassButton>
             </div>
 
-            {/* Results Gallery */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-              {results.slice(0, 9).map((result, index) => (
-                <motion.div
-                  key={result.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+            {/* Results Controls */}
+            <div className="flex justify-between items-center mt-8 mb-6 px-4">
+              <div className="flex gap-3">
+                <Badge className="bg-primary/20 text-primary border border-primary/30">
+                  {results.filter(r => r.image_url).length} Successful
+                </Badge>
+                <Badge className="bg-destructive/20 text-destructive border border-destructive/30">
+                  {results.filter(r => r.generation_error).length} Failed
+                </Badge>
+              </div>
+              
+              <div className="flex gap-2">
+                <GlassButton 
+                  size="sm" 
+                  variant={showFailures ? "stellar" : "outline"}
+                  onClick={() => setShowFailures(!showFailures)}
                 >
-                  <GlassCard
-                    variant="stellar"
-                    depth="medium"
-                    glow="subtle"
-                    className="group cursor-pointer hover:ring-2 hover:ring-purple-500/50 transition-all"
-                  >
-                    <div className="relative aspect-square overflow-hidden rounded-t-xl">
-                      <img
-                        src={result.image_url}
-                        alt={result.test_id}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-
-                      {/* Score Badge */}
-                      <div className="absolute top-3 right-3">
-                        <Badge
-                          className={cn(
-                            "text-lg font-bold px-3 py-1.5",
-                            result.judge_score >= 8 
-                              ? "bg-green-500/90 text-white border-green-400 shadow-[0_0_12px_rgba(34,197,94,0.6)]"
-                              : result.judge_score >= 6
-                              ? "bg-yellow-500/90 text-white border-yellow-400 shadow-[0_0_12px_rgba(234,179,8,0.6)]"
-                              : "bg-red-500/90 text-white border-red-400 shadow-[0_0_12px_rgba(239,68,68,0.6)]"
-                          )}
-                        >
-                          {result.judge_score}/10
-                        </Badge>
-                      </div>
-
-                      {/* Hover Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                        <div className="text-left">
-                          <div className="text-xs text-zinc-400 uppercase tracking-wider mb-1">Judge Reasoning</div>
-                          <div className="text-sm text-white line-clamp-2">{result.judge_reasoning}</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <GlassCardContent className="p-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/30 text-xs">
-                          {result.model_id.split('/').pop()}
-                        </Badge>
-                        <div className="text-xs text-zinc-500 font-mono">
-                          {result.generation_time_ms}ms
-                        </div>
-                      </div>
-
-                      <div className="text-sm text-zinc-300 font-medium">{result.test_id}</div>
-
-                      {/* Criteria Breakdown */}
-                      {result.criteria_breakdown && (
-                        <div className="flex gap-1 pt-2">
-                          {Object.entries(result.criteria_breakdown).map(([key, value]) => (
-                            <div
-                              key={key}
-                              className="flex-1 h-1.5 rounded-full bg-zinc-800 overflow-hidden"
-                              title={`${key}: ${value}/10`}
-                            >
-                              <div
-                                className="h-full bg-gradient-to-r from-purple-500 to-purple-400"
-                                style={{ width: `${(value as number / 10) * 100}%` }}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </GlassCardContent>
-                  </GlassCard>
-                </motion.div>
-              ))}
+                  {showFailures ? "Hide Failures" : "Show Failures"}
+                </GlassButton>
+                
+                <Select value={resultsPerPage.toString()} onValueChange={(v) => setResultsPerPage(parseInt(v))}>
+                  <SelectTrigger className="w-32 bg-background/50 border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background/95 backdrop-blur-xl border-border">
+                    <SelectItem value="12">12 per page</SelectItem>
+                    <SelectItem value="24">24 per page</SelectItem>
+                    <SelectItem value="48">48 per page</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            {/* Results Gallery */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12 px-4">
+              {results
+                .filter(r => showFailures || r.image_url)
+                .slice((resultsPage - 1) * resultsPerPage, resultsPage * resultsPerPage)
+                .map((result, index) => (
+                  <ResultCard 
+                    key={result.id}
+                    result={result}
+                    index={index}
+                    expanded={expandedResult === result.id}
+                    onExpand={() => setExpandedResult(expandedResult === result.id ? null : result.id)}
+                  />
+                ))
+              }
+            </div>
+
+            {/* Pagination */}
+            {results.filter(r => showFailures || r.image_url).length > resultsPerPage && (
+              <div className="flex justify-center items-center gap-2 mt-8">
+                <GlassButton
+                  size="sm"
+                  variant="outline"
+                  disabled={resultsPage === 1}
+                  onClick={() => setResultsPage(p => p - 1)}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </GlassButton>
+                <span className="text-muted-foreground px-4 py-2">
+                  Page {resultsPage} of {Math.ceil(results.filter(r => showFailures || r.image_url).length / resultsPerPage)}
+                </span>
+                <GlassButton
+                  size="sm"
+                  variant="outline"
+                  disabled={resultsPage >= Math.ceil(results.filter(r => showFailures || r.image_url).length / resultsPerPage)}
+                  onClick={() => setResultsPage(p => p + 1)}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </GlassButton>
+              </div>
+            )}
+
+            {/* Analytics Modal */}
+            {currentRun && (
+              <AnalyticsModal
+                open={showAnalytics}
+                onOpenChange={setShowAnalytics}
+                results={results}
+                run={currentRun}
+              />
+            )}
           </motion.div>
         </GlassCard>
       )}
