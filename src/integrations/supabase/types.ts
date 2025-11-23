@@ -1708,6 +1708,8 @@ export type Database = {
         Row: {
           created_at: string | null
           criteria_breakdown: Json | null
+          detailed_reasoning: Json | null
+          generation_error: string | null
           generation_time_ms: number | null
           id: string
           image_url: string
@@ -1721,6 +1723,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           criteria_breakdown?: Json | null
+          detailed_reasoning?: Json | null
+          generation_error?: string | null
           generation_time_ms?: number | null
           id?: string
           image_url: string
@@ -1734,6 +1738,8 @@ export type Database = {
         Update: {
           created_at?: string | null
           criteria_breakdown?: Json | null
+          detailed_reasoning?: Json | null
+          generation_error?: string | null
           generation_time_ms?: number | null
           id?: string
           image_url?: string
