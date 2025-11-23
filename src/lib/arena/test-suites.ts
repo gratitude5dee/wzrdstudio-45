@@ -79,9 +79,9 @@ export const ARENA_MODELS: Record<string, { id: string; name: string; category: 
   'fal-ai/reve': { id: 'fal-ai/reve', name: 'Reve', category: 'text-to-image' },
   'fal-ai/hidream-i1-fast': { id: 'fal-ai/hidream-i1-fast', name: 'Hidream I1 Fast', category: 'text-to-image' },
   'fal-ai/hidream-i1-dev': { id: 'fal-ai/hidream-i1-dev', name: 'Hidream I1 Dev', category: 'text-to-image' },
-  'fal-ai/flux/schnell': { id: 'fal-ai/flux/schnell', name: 'FLUX Schnell', category: 'text-to-image' },
-  'fal-ai/flux/dev': { id: 'fal-ai/flux/dev', name: 'FLUX Dev', category: 'text-to-image' },
-  'fal-ai/flux-pro/v1.1-ultra': { id: 'fal-ai/flux-pro/v1.1-ultra', name: 'FLUX Pro 1.1', category: 'text-to-image' },
+  'fal-ai/nano-banana-pro': { id: 'fal-ai/nano-banana-pro', name: 'Nano Banana Pro', category: 'text-to-image' },
+  'fal-ai/bytedance/seedream/v4/text-to-image': { id: 'fal-ai/bytedance/seedream/v4/text-to-image', name: 'SeeDream V4', category: 'text-to-image' },
+  'fal-ai/hunyuan-image/v3/text-to-image': { id: 'fal-ai/hunyuan-image/v3/text-to-image', name: 'Hunyuan Image V3', category: 'text-to-image' },
   'fal-ai/ideogram/v3': { id: 'fal-ai/ideogram/v3', name: 'Ideogram V3', category: 'text-to-image' },
   'fal-ai/minimax/image-01': { id: 'fal-ai/minimax/image-01', name: 'MiniMax Image-01', category: 'text-to-image' }
 };
