@@ -53,6 +53,7 @@ export const AppHeader = ({
   };
 
   const currentView = getCurrentView();
+  const isArenaPage = location.pathname.includes('/arena');
 
   // When URL projectId changes, update the store
   useEffect(() => {
@@ -198,31 +199,71 @@ export const AppHeader = ({
       </div>
 
       <div className="flex-1 flex justify-center">
-        <div className="flex items-center space-x-1 bg-zinc-900/80 rounded-lg p-1">
-          <Button
-            variant="ghost"
-            className={getButtonClass('studio')}
-            onClick={() => handleNavigate('studio')}
-          >
-            Studio
-          </Button>
-          
-          <Button
-            variant="ghost" 
-            className={getButtonClass('timeline')}
-            onClick={() => handleNavigate('timeline')}
-          >
-            Timeline
-          </Button>
-          
-          <Button
-            variant="ghost"
-            className={getButtonClass('editor')}
-            onClick={() => handleNavigate('editor')}
-          >
-            Editor
-          </Button>
-        </div>
+        {isArenaPage ? (
+          <div className="flex items-center space-x-1 bg-zinc-900/80 rounded-lg p-1">
+            <Button
+              variant="ghost"
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                location.hash === '#testing-suite' || location.hash === ''
+                  ? "bg-purple-600 text-white"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              )}
+              onClick={() => {
+                const url = new URL(window.location.href);
+                url.hash = '#testing-suite';
+                window.history.pushState({}, '', url);
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+              }}
+            >
+              Testing Suite
+            </Button>
+            
+            <Button
+              variant="ghost" 
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                location.hash === '#sandboxes'
+                  ? "bg-purple-600 text-white"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              )}
+              onClick={() => {
+                const url = new URL(window.location.href);
+                url.hash = '#sandboxes';
+                window.history.pushState({}, '', url);
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+              }}
+            >
+              Sandboxes
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center space-x-1 bg-zinc-900/80 rounded-lg p-1">
+            <Button
+              variant="ghost"
+              className={getButtonClass('studio')}
+              onClick={() => handleNavigate('studio')}
+            >
+              Studio
+            </Button>
+            
+            <Button
+              variant="ghost" 
+              className={getButtonClass('timeline')}
+              onClick={() => handleNavigate('timeline')}
+            >
+              Timeline
+            </Button>
+            
+            <Button
+              variant="ghost"
+              className={getButtonClass('editor')}
+              onClick={() => handleNavigate('editor')}
+            >
+              Editor
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
