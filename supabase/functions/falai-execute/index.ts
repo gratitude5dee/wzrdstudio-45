@@ -46,6 +46,6 @@ serve(async (req) => {
       return errorResponse(error.message, 401);
     }
     
-    return errorResponse(error.message || 'Failed to execute model', 500);
+    return errorResponse(error, 500);
   }
 });
