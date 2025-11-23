@@ -125,6 +125,6 @@ Deno.serve(async (req) => {
       return errorResponse(error.message, 401);
     }
 
-    return errorResponse(error.message || 'Failed to accept invitation', 500);
+    return errorResponse(error, 500);
   }
 });

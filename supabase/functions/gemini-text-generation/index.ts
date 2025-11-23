@@ -63,6 +63,6 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Error:", error);
-    return errorResponse(error instanceof Error ? error.message : "Unknown error", 500);
+    return errorResponse(error, 500);
   }
 });

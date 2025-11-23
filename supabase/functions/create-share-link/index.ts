@@ -188,6 +188,6 @@ Deno.serve(async (req) => {
       return errorResponse(error.message, 401);
     }
 
-    return errorResponse(error.message || 'Failed to create share link', 500);
+    return errorResponse(error, 500);
   }
 });

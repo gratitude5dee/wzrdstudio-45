@@ -50,6 +50,6 @@ Deno.serve(async (req) => {
     }
     
     // Handle other errors
-    return errorResponse(error.message || 'Failed to download file', 500);
+    return errorResponse(error, 500);
   }
 });

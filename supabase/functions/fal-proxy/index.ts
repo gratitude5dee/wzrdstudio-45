@@ -96,6 +96,6 @@ serve(async (req) => {
     }
     
     // Handle other errors
-    return errorResponse(error.message || 'Failed to process fal.ai request', 500);
+    return errorResponse(error, 500);
   }
 });

@@ -65,6 +65,6 @@ serve(async (req) => {
     }
     
     // Handle other errors
-    return errorResponse(error.message || 'Failed to poll fal.ai status', 500);
+    return errorResponse(error, 500);
   }
 });

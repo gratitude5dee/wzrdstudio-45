@@ -86,6 +86,6 @@ serve(async (req) => {
       return errorResponse(error.message, 401);
     }
     
-    return errorResponse(error.message || 'Failed to generate video', 500);
+    return errorResponse(error, 500);
   }
 });
