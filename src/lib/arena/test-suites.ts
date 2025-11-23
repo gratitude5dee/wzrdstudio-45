@@ -71,8 +71,11 @@ export const VECTOR_INFO = {
   }
 };
 
-export const ARENA_MODELS: Record<string, { id: string; name: string; category: string; isBeta?: boolean }> = {
-  'fal-ai/beta-image-232': { id: 'fal-ai/beta-image-232', name: 'Beta-232 (Internal)', category: 'text-to-image', isBeta: true },
+export const ARENA_MODELS: Record<string, { id: string; name: string; category: string; isBeta?: boolean; isAlpha?: boolean; isFree?: boolean }> = {
+  'fal-ai/alpha-image-232/text-to-image': { id: 'fal-ai/alpha-image-232/text-to-image', name: 'Alpha-232 T2I (Internal)', category: 'text-to-image', isAlpha: true, isFree: true },
+  'fal-ai/alpha-image-232/edit-image': { id: 'fal-ai/alpha-image-232/edit-image', name: 'Alpha-232 Edit (Internal)', category: 'image-editing', isAlpha: true, isFree: true },
+  'fal-ai/beta-image-232': { id: 'fal-ai/beta-image-232', name: 'Beta-232 T2I (Internal)', category: 'text-to-image', isBeta: true, isFree: true },
+  'fal-ai/beta-image-232/edit': { id: 'fal-ai/beta-image-232/edit', name: 'Beta-232 Edit (Internal)', category: 'image-editing', isBeta: true, isFree: true },
   'fal-ai/reve': { id: 'fal-ai/reve', name: 'Reve', category: 'text-to-image' },
   'fal-ai/hidream-i1-fast': { id: 'fal-ai/hidream-i1-fast', name: 'Hidream I1 Fast', category: 'text-to-image' },
   'fal-ai/hidream-i1-dev': { id: 'fal-ai/hidream-i1-dev', name: 'Hidream I1 Dev', category: 'text-to-image' },
