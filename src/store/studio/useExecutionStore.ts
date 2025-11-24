@@ -1,5 +1,14 @@
 import { create } from 'zustand';
 
+export interface ExecutionRun {
+  id: string;
+  timestamp: number;
+  duration: number;
+  status: 'success' | 'failed';
+  results: Record<string, any>;
+  errors: Record<string, string>;
+}
+
 interface ExecutionState {
   isRunning: boolean;
   currentNodeId?: string;
@@ -7,6 +16,7 @@ interface ExecutionState {
   results: Record<string, any>; // nodeId -> result
   errors: Record<string, string>; // nodeId -> error message
   logs: Array<{ timestamp: number; nodeId?: string; message: string; level: 'info' | 'warn' | 'error' }>;
+  history: ExecutionRun[];
 
   // Actions
   startExecution: () => void;
@@ -15,6 +25,7 @@ interface ExecutionState {
   setNodeResult: (nodeId: string, result: any) => void;
   setNodeError: (nodeId: string, error: string) => void;
   addLog: (log: ExecutionState['logs'][0]) => void;
+  addToHistory: (run: ExecutionRun) => void;
   clearExecution: () => void;
 }
 
@@ -24,6 +35,7 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
   results: {},
   errors: {},
   logs: [],
+  history: [],
 
   startExecution: () => set({
     isRunning: true,
@@ -50,6 +62,10 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
 
   addLog: (log) => set((state) => ({
     logs: [...state.logs, log],
+  })),
+
+  addToHistory: (run) => set((state) => ({
+    history: [run, ...state.history]
   })),
 
   clearExecution: () => set({

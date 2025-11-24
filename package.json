@@ -88,7 +88,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.9.0",
+    "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.48.0",
     "@remotion/cli": "^4.0.168",
     "@tailwindcss/typography": "^0.5.15",
