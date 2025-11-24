@@ -1,71 +1,46 @@
-import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { ResultNodeData } from '@/types/studio/nodes';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useExecutionStore } from '@/store/studio/useExecutionStore';
+import { Loader2, Image as ImageIcon } from 'lucide-react';
 
-export const ResultNode = memo<NodeProps<ResultNodeData>>(({ data, selected, id }) => {
-  const result = useExecutionStore((state) => state.results[id]);
-  const error = useExecutionStore((state) => state.errors[id]);
+export default function ResultNode({ id, data, selected }: NodeProps) {
+  const results = useExecutionStore((state) => state.results);
+  const isRunning = useExecutionStore((state) => state.isRunning);
+  const progress = useExecutionStore((state) => state.progress);
+
+  const result = results[id];
+  const nodeProgress = progress[id];
+  const isNodeRunning = isRunning && nodeProgress !== undefined && nodeProgress < 1;
 
   return (
-    <div
-      className={cn(
-        "bg-surface-secondary border-2 rounded-lg shadow-lg min-w-[200px]",
-        selected ? "border-primary" : "border-green-500"
-      )}
-    >
-      <div className="p-3">
-        <div className="text-sm font-semibold text-green-400 mb-2">OUTPUT</div>
-
-        {error && (
-          <div className="text-xs text-red-400 p-2 bg-red-950/20 rounded">
-            Error: {error}
+    <Card className={`min-w-[250px] border-2 ${selected ? 'border-primary' : 'border-border'}`}>
+      <CardHeader className="p-3 pb-2">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          {data.label as string}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-3 pt-0 min-h-[200px] flex items-center justify-center bg-muted/50">
+        {isNodeRunning ? (
+          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="text-xs">Processing... {Math.round((nodeProgress || 0) * 100)}%</span>
+          </div>
+        ) : result ? (
+           result.type === 'image' ? (
+            <img src={result.url} alt="Result" className="max-w-full max-h-[300px] object-contain rounded" />
+           ) : (
+             <div className="p-2 text-xs font-mono whitespace-pre-wrap break-all">
+               {JSON.stringify(result, null, 2)}
+             </div>
+           )
+        ) : (
+          <div className="flex flex-col items-center gap-2 text-muted-foreground/50">
+            <ImageIcon className="h-12 w-12" />
+            <span className="text-xs">No output</span>
           </div>
         )}
-
-        {result && !error && (
-          <div className="space-y-2">
-            {data.outputType === 'image' && result.url && (
-              <img
-                src={result.url}
-                alt="Result"
-                className="w-full rounded"
-              />
-            )}
-
-            {data.outputType === 'video' && result.url && (
-              <video
-                src={result.url}
-                controls
-                className="w-full rounded"
-              />
-            )}
-
-            {data.outputType === 'text' && (
-              <div className="text-xs font-mono p-2 bg-black/20 rounded">
-                {result.text || result}
-              </div>
-            )}
-          </div>
-        )}
-
-        {!result && !error && (
-          <div className="text-xs text-muted-foreground">
-            No output yet
-          </div>
-        )}
-      </div>
-
-      {/* Input Handle */}
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="input"
-        className="!w-3 !h-3 !border-2 !border-white !bg-green-500"
-      />
-    </div>
+      </CardContent>
+      <Handle type="target" position={Position.Left} className="w-3 h-3 bg-primary" />
+    </Card>
   );
-});
-
-ResultNode.displayName = 'ResultNode';
+}

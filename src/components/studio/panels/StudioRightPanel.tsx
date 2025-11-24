@@ -1,12 +1,18 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Play, Square, Trash2, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Square, Trash2, Clock, AlertCircle, CheckCircle, Settings, Sliders } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useExecutionStore } from '@/store/studio/useExecutionStore';
+import { useComposerStore } from '@/store/studio/useComposerStore';
 import { useExecuteWorkflow } from '@/hooks/studio/useExecuteWorkflow';
+import { useFalModels } from '@/hooks/useFalModels';
+import ModelSelector from '../ModelSelector';
 import { cn } from '@/lib/utils';
 
 const RunTabContent = () => {
@@ -183,6 +189,160 @@ const HistoryTabContent = () => {
   );
 };
 
+const PropertiesTabContent = () => {
+  const nodes = useComposerStore((state) => state.nodes);
+  const setNodes = useComposerStore((state) => state.setNodes);
+
+  const selectedNode = nodes.find((n) => n.selected);
+
+  // Model selector state
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const { models, isLoading: isModelsLoading, error: modelsError } = useFalModels({ autoFetch: true });
+
+  if (!selectedNode) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4 text-center">
+        <Settings className="h-12 w-12 mb-2 opacity-20" />
+        <div className="text-sm">No node selected</div>
+        <div className="text-xs opacity-70 mt-1">Select a node to configure properties</div>
+      </div>
+    );
+  }
+
+  const handleUpdateNode = (data: Record<string, any>) => {
+    setNodes((nodes) =>
+      nodes.map((n) => n.id === selectedNode.id ? { ...n, data: { ...n.data, ...data } } : n)
+    );
+  };
+
+  const handleInputUpdate = (key: string, value: any) => {
+    setNodes((nodes) =>
+      nodes.map((n) => {
+        if (n.id === selectedNode.id) {
+           const currentInputs = (n.data.inputValues as Record<string, any>) || {};
+           return {
+             ...n,
+             data: {
+               ...n.data,
+               inputValues: { ...currentInputs, [key]: value }
+             }
+           };
+        }
+        return n;
+      })
+    );
+  };
+
+  const isWorkflowNode = selectedNode.type === 'workflowNode';
+
+  return (
+    <ScrollArea className="h-full">
+      <div className="p-4 space-y-6">
+        <div className="space-y-1 pb-4 border-b border-border-default">
+          <div className="text-xs font-mono text-muted-foreground uppercase">
+            {selectedNode.type}
+          </div>
+          <div className="font-semibold text-lg">
+            {selectedNode.data.label as string || 'Untitled Node'}
+          </div>
+        </div>
+
+        {/* Workflow Node Settings */}
+        {isWorkflowNode && (
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <Label className="text-xs font-medium text-zinc-400">Model</Label>
+              {isModelsLoading ? (
+                 <div className="text-zinc-500 text-sm">Loading models...</div>
+              ) : modelsError ? (
+                 <div className="text-red-400 text-sm">Error: {modelsError}</div>
+              ) : (
+                 <ModelSelector
+                   models={models}
+                   selectedModelId={selectedNode.data.modelId as string || ''}
+                   onModelSelect={(id) => handleUpdateNode({ modelId: id })}
+                   modelType="image" // Default to image for now, could be dynamic
+                   isOpen={isModelDropdownOpen}
+                   toggleOpen={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                 />
+              )}
+            </div>
+
+            {/* Dynamic Inputs from Node Data */}
+            {selectedNode.data.inputs && Object.keys(selectedNode.data.inputs).length > 0 && (
+               <div className="space-y-4 pt-4 border-t border-border-default">
+                 <div className="text-xs font-semibold text-muted-foreground mb-2">PARAMETERS</div>
+                 {Object.entries(selectedNode.data.inputs as Record<string, any>).map(([key, config]) => (
+                   <div key={key} className="space-y-2">
+                     <Label className="text-xs">{config.label || key}</Label>
+                     {config.type === 'number' && (
+                       config.min !== undefined && config.max !== undefined ? (
+                         <div className="space-y-2">
+                           <div className="flex items-center justify-between">
+                             <span className="text-xs text-muted-foreground">
+                               {(selectedNode.data.inputValues as any)?.[key] ?? config.defaultValue}
+                             </span>
+                           </div>
+                           <Slider
+                             value={[Number((selectedNode.data.inputValues as any)?.[key] ?? config.defaultValue)]}
+                             min={config.min}
+                             max={config.max}
+                             step={config.step || 1}
+                             onValueChange={(vals) => handleInputUpdate(key, vals[0])}
+                           />
+                         </div>
+                       ) : (
+                         <Input
+                           type="number"
+                           value={(selectedNode.data.inputValues as any)?.[key] ?? config.defaultValue}
+                           onChange={(e) => handleInputUpdate(key, parseFloat(e.target.value))}
+                           className="h-8 text-xs"
+                         />
+                       )
+                     )}
+                     {config.type === 'text' && (
+                       <Input
+                         type="text"
+                         value={(selectedNode.data.inputValues as any)?.[key] ?? config.defaultValue}
+                         onChange={(e) => handleInputUpdate(key, e.target.value)}
+                         className="h-8 text-xs"
+                       />
+                     )}
+                     {config.type === 'boolean' && (
+                       // Basic checkbox/switch simulation if UI component not readily available or complex
+                       <div className="flex items-center gap-2">
+                         <input
+                           type="checkbox"
+                           checked={(selectedNode.data.inputValues as any)?.[key] ?? config.defaultValue}
+                           onChange={(e) => handleInputUpdate(key, e.target.checked)}
+                           className="rounded border-zinc-700 bg-zinc-900"
+                         />
+                         <span className="text-xs text-muted-foreground">Enabled</span>
+                       </div>
+                     )}
+                   </div>
+                 ))}
+               </div>
+            )}
+          </div>
+        )}
+
+        {/* Other Node Types */}
+        {!isWorkflowNode && (
+           <div className="space-y-3">
+             <Label className="text-xs">Label</Label>
+             <Input
+               value={selectedNode.data.label as string || ''}
+               onChange={(e) => handleUpdateNode({ label: e.target.value })}
+             />
+           </div>
+        )}
+      </div>
+    </ScrollArea>
+  );
+};
+
+
 export const StudioRightPanel = () => {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -211,8 +371,14 @@ export const StudioRightPanel = () => {
         </button>
       </div>
 
-      <Tabs defaultValue="run" className="flex-1 flex flex-col min-h-0">
-        <TabsList className="grid w-full grid-cols-2 rounded-none border-b border-border-default px-4 pb-0 bg-transparent h-12">
+      <Tabs defaultValue="properties" className="flex-1 flex flex-col min-h-0">
+        <TabsList className="grid w-full grid-cols-3 rounded-none border-b border-border-default px-4 pb-0 bg-transparent h-12">
+           <TabsTrigger
+            value="properties"
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+          >
+            Settings
+          </TabsTrigger>
           <TabsTrigger
             value="run"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
@@ -226,6 +392,10 @@ export const StudioRightPanel = () => {
             History
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="properties" className="flex-1 min-h-0 m-0 data-[state=inactive]:hidden">
+          <PropertiesTabContent />
+        </TabsContent>
 
         <TabsContent value="run" className="flex-1 min-h-0 m-0 data-[state=inactive]:hidden">
           <RunTabContent />
