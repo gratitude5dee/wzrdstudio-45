@@ -1,91 +1,37 @@
-import { memo, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { PrimitiveNodeData } from '@/types/studio/nodes';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 import { useComposerStore } from '@/store/studio/useComposerStore';
 
-export const PrimitiveNode = memo<NodeProps<PrimitiveNodeData>>(({ data, selected, id }) => {
-  const [value, setValue] = useState(data.value);
+export default function PrimitiveNode({ id, data, selected }: NodeProps) {
+  const updateNodeData = useComposerStore((state) => state.updateNodeData);
+  const fieldType = data.fieldType as any;
 
-  const handleChange = (newValue: any) => {
-    setValue(newValue);
-    // Update in store
-    useComposerStore.getState().setNodes((nodes) =>
-      nodes.map((node) =>
-        node.id === id
-          ? { ...node, data: { ...node.data, value: newValue } }
-          : node
-      )
-    );
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    updateNodeData(id, { value: e.target.value });
   };
 
   return (
-    <div
-      className={cn(
-        "bg-surface-primary border-2 rounded-lg shadow-lg min-w-[180px]",
-        selected ? "border-primary" : "border-border-default"
-      )}
-    >
-      <div className="p-3">
-        <div className="text-xs font-semibold text-muted-foreground mb-2">
-          {data.valueType.toUpperCase()}
-        </div>
-
-        {data.valueType === 'text' && (
-          <Textarea
-            value={value || ''}
-            onChange={(e) => handleChange(e.target.value)}
-            placeholder="Enter text..."
-            className="min-h-[80px] text-sm"
-          />
-        )}
-
-        {data.valueType === 'number' && (
+    <Card className={`min-w-[250px] border-2 ${selected ? 'border-primary' : 'border-border'}`}>
+      <CardHeader className="p-3 pb-2">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          {data.label as string}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-3 pt-0">
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">{fieldType?.label}</Label>
           <Input
-            type="number"
-            value={value || 0}
-            onChange={(e) => handleChange(parseFloat(e.target.value))}
-            className="text-sm"
+            className="nodrag"
+            type={fieldType?.type === 'number' ? 'number' : 'text'}
+            defaultValue={data.value as string}
+            onChange={handleChange}
+            placeholder={`Enter ${fieldType?.label?.toLowerCase()}...`}
           />
-        )}
-
-        {data.valueType === 'image' && (
-          <div className="space-y-2">
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onload = (ev) => handleChange(ev.target?.result);
-                  reader.readAsDataURL(file);
-                }
-              }}
-              className="text-sm"
-            />
-            {value && (
-              <img
-                src={value}
-                alt="Preview"
-                className="w-full h-24 object-cover rounded"
-              />
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Output Handle */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="output"
-        className="!w-3 !h-3 !border-2 !border-white !bg-blue-500"
-      />
-    </div>
+        </div>
+      </CardContent>
+      <Handle type="source" position={Position.Right} className="w-3 h-3 bg-primary" />
+    </Card>
   );
-});
-
-PrimitiveNode.displayName = 'PrimitiveNode';
+}

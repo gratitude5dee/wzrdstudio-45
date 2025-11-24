@@ -1,92 +1,95 @@
-
-import React from 'react';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronsUpDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
-export interface Model {
+export interface ModelOption {
   id: string;
-  name: string;
-  icon?: React.ReactNode;
-  credits?: number;
-  time?: string;
+  name?: string; // Support 'name' from FalModel
+  label?: string; // Support 'label' from generic options
   description?: string;
+  icon?: string;
 }
 
 interface ModelSelectorProps {
-  models: Model[];
+  models: ModelOption[];
   selectedModelId: string;
   onModelSelect: (modelId: string) => void;
-  modelType: 'text' | 'image' | 'video';
+  modelType?: 'image' | 'video' | 'audio' | 'text';
   isOpen: boolean;
   toggleOpen: () => void;
 }
 
-const ModelSelector: React.FC<ModelSelectorProps> = ({
+export default function ModelSelector({
   models,
   selectedModelId,
   onModelSelect,
-  modelType,
+  modelType = 'image',
   isOpen,
-  toggleOpen
-}) => {
-  const selectedModel = models.find(model => model.id === selectedModelId);
+  toggleOpen,
+}: ModelSelectorProps) {
+  const selectedModel = models.find((m) => m.id === selectedModelId);
 
   return (
-    <div className="relative">
-      <button
-        className="w-full flex items-center justify-between p-2 bg-zinc-800/50 hover:bg-zinc-800 rounded-md"
-        onClick={toggleOpen}
-      >
-        <span className="text-zinc-300">{selectedModel?.name || 'Select Model'}</span>
-        <ChevronDown className={cn("h-4 w-4 text-zinc-500 transition-transform", isOpen && "rotate-180")} />
-      </button>
-
-      {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-900 border border-zinc-800 rounded-md shadow-lg max-h-80 overflow-y-auto z-50">
-          {models.map((model) => (
-            <button
-              key={model.id}
-              className={cn(
-                "w-full flex items-center p-3 hover:bg-zinc-800 text-left border-b border-zinc-800/50 last:border-0",
-                selectedModelId === model.id && "bg-zinc-800/70"
-              )}
-              onClick={() => {
-                onModelSelect(model.id);
-                toggleOpen();
-              }}
-            >
-              <div className="mr-3">
-                {model.icon ? model.icon : (
-                  <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-xs text-white">
-                    {model.name[0]}
-                  </div>
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="text-white text-sm">{model.name}</div>
-                {model.description && (
-                  <div className="text-zinc-500 text-xs">{model.description}</div>
-                )}
-              </div>
-              <div className="flex items-center">
-                {model.credits && (
-                  <span className="text-xs text-zinc-400 mr-2">
-                    <span className="text-yellow-500 font-semibold">{model.credits}</span>
-                  </span>
-                )}
-                {model.time && (
-                  <span className="text-xs text-zinc-400">{model.time}</span>
-                )}
-                {selectedModelId === model.id && (
-                  <Check className="ml-2 h-4 w-4 text-white" />
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <Popover open={isOpen} onOpenChange={toggleOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={isOpen}
+          className="w-full justify-between text-xs h-9"
+        >
+          <span className="truncate">
+            {selectedModel ? (selectedModel.name || selectedModel.label) : `Select ${modelType} model...`}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[280px] p-0">
+        <Command>
+          <CommandInput placeholder={`Search ${modelType} models...`} />
+          <CommandEmpty>No model found.</CommandEmpty>
+          <CommandGroup className="max-h-[300px] overflow-auto">
+            {models.map((model) => (
+              <CommandItem
+                key={model.id}
+                value={model.name || model.label}
+                onSelect={() => {
+                  onModelSelect(model.id);
+                  toggleOpen();
+                }}
+                className="text-xs"
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    selectedModelId === model.id ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                <div className="flex flex-col">
+                   <span>{model.name || model.label}</span>
+                   {model.description && (
+                     <span className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                       {model.description}
+                     </span>
+                   )}
+                </div>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
-};
-
-export default ModelSelector;
+}
