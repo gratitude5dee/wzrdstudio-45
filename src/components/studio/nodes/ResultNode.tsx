@@ -7,6 +7,7 @@ export default function ResultNode({ id, data, selected }: NodeProps) {
   const results = useExecutionStore((state) => state.results);
   const isRunning = useExecutionStore((state) => state.isRunning);
   const progress = useExecutionStore((state) => state.progress);
+  const nodeData = data as any;
 
   const result = results[id];
   const nodeProgress = progress[id];
@@ -16,7 +17,7 @@ export default function ResultNode({ id, data, selected }: NodeProps) {
     <Card className={`min-w-[250px] border-2 ${selected ? 'border-primary' : 'border-border'}`}>
       <CardHeader className="p-3 pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          {data.label as string}
+          {nodeData.label}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-3 pt-0 min-h-[200px] flex items-center justify-center bg-muted/50">

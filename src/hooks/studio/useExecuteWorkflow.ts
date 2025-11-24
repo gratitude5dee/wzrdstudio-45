@@ -131,7 +131,6 @@ async function executeWorkflowNode(
 
     try {
       // Fal client handles polling automatically
-      // @ts-expect-error - Fal types might mismatch slightly with our generic use
       const result = await fal.subscribe(modelId as string, {
         input: inputs,
         logs: true,

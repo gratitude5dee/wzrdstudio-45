@@ -37,6 +37,13 @@ interface ComposerState {
   ) => void;
   setViewport: (viewport: Viewport) => void;
   setMeta: (meta: Partial<ComposerState['meta']>) => void;
+  
+  // React Flow handlers
+  addNode: (node: Node) => void;
+  updateNodeData: (id: string, data: any) => void;
+  onNodesChange: (changes: any) => void;
+  onEdgesChange: (changes: any) => void;
+  onConnect: (connection: any) => void;
 
   // History
   undo: () => void;
@@ -192,6 +199,83 @@ export const useComposerStore = create<ComposerState>()(
           viewport: state.viewport,
           meta: state.meta,
         };
+      },
+
+      // React Flow handlers
+      addNode: (node) => {
+        set((state) => ({
+          nodes: [...state.nodes, node],
+          history: {
+            past: [...state.history.past, { nodes: state.nodes, edges: state.edges }].slice(-50),
+            future: [],
+          },
+        }));
+      },
+
+      updateNodeData: (id, data) => {
+        set((state) => ({
+          nodes: state.nodes.map((node) =>
+            node.id === id ? { ...node, data: { ...node.data, ...data } } : node
+          ),
+        }));
+      },
+
+      onNodesChange: (changes) => {
+        set((state) => {
+          const newNodes = changes.reduce((nodes: Node[], change: any) => {
+            if (change.type === 'remove') {
+              return nodes.filter((node) => node.id !== change.id);
+            }
+            if (change.type === 'position' && change.position) {
+              return nodes.map((node) =>
+                node.id === change.id ? { ...node, position: change.position } : node
+              );
+            }
+            if (change.type === 'select') {
+              return nodes.map((node) =>
+                node.id === change.id ? { ...node, selected: change.selected } : node
+              );
+            }
+            return nodes;
+          }, state.nodes);
+          
+          return { nodes: newNodes };
+        });
+      },
+
+      onEdgesChange: (changes) => {
+        set((state) => {
+          const newEdges = changes.reduce((edges: any[], change: any) => {
+            if (change.type === 'remove') {
+              return edges.filter((edge) => edge.id !== change.id);
+            }
+            if (change.type === 'select') {
+              return edges.map((edge) =>
+                edge.id === change.id ? { ...edge, selected: change.selected } : edge
+              );
+            }
+            return edges;
+          }, state.edges);
+          
+          return { edges: newEdges };
+        });
+      },
+
+      onConnect: (connection) => {
+        set((state) => ({
+          edges: [
+            ...state.edges,
+            {
+              ...connection,
+              id: `${connection.source}-${connection.target}`,
+              type: 'default',
+            },
+          ],
+          history: {
+            past: [...state.history.past, { nodes: state.nodes, edges: state.edges }].slice(-50),
+            future: [],
+          },
+        }));
       },
     }),
     { name: 'ComposerStore' }
