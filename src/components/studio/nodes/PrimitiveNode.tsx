@@ -6,7 +6,8 @@ import { useComposerStore } from '@/store/studio/useComposerStore';
 
 export default function PrimitiveNode({ id, data, selected }: NodeProps) {
   const updateNodeData = useComposerStore((state) => state.updateNodeData);
-  const fieldType = data.fieldType as any;
+  const nodeData = data as any;
+  const fieldType = nodeData.fieldType;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateNodeData(id, { value: e.target.value });
@@ -16,7 +17,7 @@ export default function PrimitiveNode({ id, data, selected }: NodeProps) {
     <Card className={`min-w-[250px] border-2 ${selected ? 'border-primary' : 'border-border'}`}>
       <CardHeader className="p-3 pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          {data.label as string}
+          {nodeData.label}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-3 pt-0">
@@ -25,7 +26,7 @@ export default function PrimitiveNode({ id, data, selected }: NodeProps) {
           <Input
             className="nodrag"
             type={fieldType?.type === 'number' ? 'number' : 'text'}
-            defaultValue={data.value as string}
+            defaultValue={nodeData.value}
             onChange={handleChange}
             placeholder={`Enter ${fieldType?.label?.toLowerCase()}...`}
           />

@@ -23,11 +23,11 @@ import { useExecutionStore } from '@/store/studio/useExecutionStore';
 import { useComposerKeyboardShortcuts } from '@/hooks/studio/useComposerKeyboardShortcuts';
 import { useNodeOperations } from '@/hooks/studio/useNodeOperations';
 
-import { WorkflowNode } from './nodes/WorkflowNode';
-import { PrimitiveNode } from './nodes/PrimitiveNode';
-import { ResultNode } from './nodes/ResultNode';
-import { CombineNode } from './nodes/CombineNode';
-import { CommentNode } from './nodes/CommentNode';
+import WorkflowNode from './nodes/WorkflowNode';
+import PrimitiveNode from './nodes/PrimitiveNode';
+import ResultNode from './nodes/ResultNode';
+import CombineNode from './nodes/CombineNode';
+import CommentNode from './nodes/CommentNode';
 
 import { WorkflowLibrary } from './panels/WorkflowLibrary';
 import { StudioRightPanel } from './panels/StudioRightPanel';

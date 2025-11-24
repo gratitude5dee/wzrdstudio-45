@@ -1,9 +1,8 @@
-import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { CombineNodeData } from '@/types/studio/nodes';
 import { cn } from '@/lib/utils';
 
-export const CombineNode = memo<NodeProps<CombineNodeData>>(({ data, selected }) => {
+const CombineNode = ({ data, selected }: NodeProps) => {
+  const nodeData = data as any;
   return (
     <div
       className={cn(
@@ -13,7 +12,7 @@ export const CombineNode = memo<NodeProps<CombineNodeData>>(({ data, selected })
     >
       <div className="p-3">
         <div className="text-sm font-semibold text-purple-400 mb-2 uppercase">
-          Combine {data.mode}
+          Combine {nodeData.mode}
         </div>
 
         <div className="space-y-2">
@@ -58,6 +57,6 @@ export const CombineNode = memo<NodeProps<CombineNodeData>>(({ data, selected })
       />
     </div>
   );
-});
+};
 
-CombineNode.displayName = 'CombineNode';
+export default CombineNode;

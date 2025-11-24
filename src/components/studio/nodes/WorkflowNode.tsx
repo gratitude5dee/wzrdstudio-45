@@ -19,8 +19,9 @@ interface InputConfig {
   options?: string[];
 }
 
-export const WorkflowNode = memo<NodeProps<WorkflowNodeData>>(({ data, selected, id }) => {
-  const isRunning = data.running;
+const WorkflowNode = ({ data, selected, id }: NodeProps) => {
+  const nodeData = data as any;
+  const isRunning = nodeData.running;
   const { setNodes } = useReactFlow();
   const edges = useEdges();
 
@@ -57,41 +58,41 @@ export const WorkflowNode = memo<NodeProps<WorkflowNodeData>>(({ data, selected,
         "bg-card border-2 rounded-lg shadow-lg min-w-[280px] max-w-[320px]",
         selected ? "border-primary ring-2 ring-primary/20" : "border-border",
         isRunning && "animate-pulse border-blue-500",
-        data.isPinned && "ring-2 ring-yellow-500"
+        nodeData.isPinned && "ring-2 ring-yellow-500"
       )}
     >
       {/* Header with Thumbnail */}
       <div className="relative">
-        {data.thumbnail && (
+        {nodeData.thumbnail && (
           <div className="h-24 w-full overflow-hidden rounded-t-md relative">
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10" />
             <img
-              src={data.thumbnail}
-              alt={data.label}
+              src={nodeData.thumbnail}
+              alt={nodeData.label}
               className="h-full w-full object-cover"
             />
             <div className="absolute bottom-2 left-2 z-20 text-white">
-              <div className="font-bold text-sm">{data.workflowName}</div>
-              <div className="text-[10px] opacity-80 uppercase tracking-wider font-mono">{data.provider}</div>
+              <div className="font-bold text-sm">{nodeData.workflowName}</div>
+              <div className="text-[10px] opacity-80 uppercase tracking-wider font-mono">{nodeData.provider}</div>
             </div>
           </div>
         )}
-        {!data.thumbnail && (
+        {!nodeData.thumbnail && (
           <div className="p-3 border-b bg-muted/30">
-            <div className="font-bold text-sm">{data.workflowName}</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">{data.provider}</div>
+            <div className="font-bold text-sm">{nodeData.workflowName}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">{nodeData.provider}</div>
           </div>
         )}
       </div>
 
       {/* Content */}
       <div className="p-3 space-y-4">
-        {!data.isCollapsed && Object.keys(data.inputs).length > 0 && (
+        {!nodeData.isCollapsed && Object.keys(nodeData.inputs).length > 0 && (
           <div className="space-y-3">
-            {Object.entries(data.inputs).map(([key, rawConfig]) => {
+            {Object.entries(nodeData.inputs).map(([key, rawConfig]) => {
               const config = rawConfig as InputConfig;
               const isConnected = connectedInputs.has(key);
-              const currentValue = (data.inputValues as Record<string, unknown>)?.[key] ?? config.defaultValue;
+              const currentValue = (nodeData.inputValues as Record<string, unknown>)?.[key] ?? config.defaultValue;
 
               return (
                 <div key={key} className="relative group">
@@ -207,6 +208,6 @@ export const WorkflowNode = memo<NodeProps<WorkflowNodeData>>(({ data, selected,
       </div>
     </div>
   );
-});
+};
 
-WorkflowNode.displayName = 'WorkflowNode';
+export default WorkflowNode;

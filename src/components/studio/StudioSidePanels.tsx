@@ -4,7 +4,12 @@ import { Check, ChevronDown } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { ModelListItem } from './StudioUtils';
-import ModelSelector, { Model } from './ModelSelector';
+import ModelSelector, { ModelOption } from './ModelSelector';
+
+interface Model extends ModelOption {
+  credits?: number;
+  time?: string;
+}
 
 interface StudioSidePanelsProps {
   selectedBlockType: 'text' | 'image' | 'video' | null;

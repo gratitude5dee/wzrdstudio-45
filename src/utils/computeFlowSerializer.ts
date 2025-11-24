@@ -1,7 +1,6 @@
 // Utilities for converting between internal block format and Compute Flow format
 
-import { Block } from '@/pages/StudioPage';
-import { Connection } from '@/types/blockTypes';
+import { BlockData, Connection } from '@/types/blockTypes';
 import { ComputeFlowGraph, NodeDefinition, EdgeDefinition, NODE_TYPE_CONFIGS } from '@/types/computeFlow';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
  * Convert internal blocks and connections to Compute Flow format
  */
 export function serializeToComputeFlow(
-  blocks: Block[],
+  blocks: BlockData[],
   connections: Connection[],
   metadata: {
     title?: string;
@@ -28,7 +27,7 @@ export function serializeToComputeFlow(
       id: block.id,
       kind,
       version: '1.0.0',
-      label: block.initialData?.prompt || `${kind} Block`,
+      label: block.inputs?.prompt || `${kind} Block`,
       position: block.position,
       inputs: config.inputs.map((input, idx) => ({
         ...input,
@@ -38,7 +37,7 @@ export function serializeToComputeFlow(
         ...output,
         id: `${block.id}-output-${idx}`
       })),
-      params: block.initialData || {},
+      params: block.inputs || {},
       status: 'idle',
       metadata: {
         createdAt: new Date().toISOString()
@@ -83,14 +82,15 @@ export function serializeToComputeFlow(
  */
 export function deserializeFromComputeFlow(
   graph: ComputeFlowGraph
-): { blocks: Block[]; connections: Connection[] } {
-  const blocks: Block[] = graph.nodes.map(node => ({
+): { blocks: BlockData[]; connections: Connection[] } {
+  const blocks: BlockData[] = graph.nodes.map(node => ({
     id: node.id,
     type: node.kind === 'Text' ? 'text' 
       : node.kind === 'Image' ? 'image' 
       : 'video',
     position: node.position,
-    initialData: node.params as any
+    inputs: node.params as any || {},
+    outputs: {}
   }));
 
   const connections: Connection[] = graph.edges.map(edge => ({

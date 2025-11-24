@@ -1,11 +1,11 @@
 import { memo } from 'react';
 import { NodeProps } from '@xyflow/react';
-import { CommentNodeData } from '@/types/studio/nodes';
 import { cn } from '@/lib/utils';
 import { useComposerStore } from '@/store/studio/useComposerStore';
 import { Textarea } from '@/components/ui/textarea';
 
-export const CommentNode = memo<NodeProps<CommentNodeData>>(({ data, selected, id }) => {
+const CommentNode = ({ data, selected, id }: NodeProps) => {
+  const nodeData = data as any;
   const handleChange = (comment: string) => {
     useComposerStore.getState().setNodes((nodes) =>
       nodes.map((node) =>
@@ -23,18 +23,18 @@ export const CommentNode = memo<NodeProps<CommentNodeData>>(({ data, selected, i
         selected ? "border-primary" : "border-border-default"
       )}
       style={{
-        borderColor: data.color || '#8b5cf6',
-        backgroundColor: `${data.color}20` || '#8b5cf620',
-        width: data.width || 300,
-        height: data.height || 200
+        borderColor: nodeData.color || '#8b5cf6',
+        backgroundColor: `${nodeData.color}20` || '#8b5cf620',
+        width: nodeData.width || 300,
+        height: nodeData.height || 200
       }}
     >
       <div className="p-2 h-full flex flex-col">
-        <div className="text-xs font-semibold text-muted-foreground mb-1" style={{ color: data.color }}>
+        <div className="text-xs font-semibold text-muted-foreground mb-1" style={{ color: nodeData.color }}>
           COMMENT
         </div>
         <Textarea
-          value={data.comment}
+          value={nodeData.comment}
           onChange={(e) => handleChange(e.target.value)}
           className="flex-1 bg-transparent border-none resize-none focus-visible:ring-0 p-0 text-sm"
           placeholder="Add a comment..."
@@ -42,6 +42,6 @@ export const CommentNode = memo<NodeProps<CommentNodeData>>(({ data, selected, i
       </div>
     </div>
   );
-});
+};
 
-CommentNode.displayName = 'CommentNode';
+export default CommentNode;
