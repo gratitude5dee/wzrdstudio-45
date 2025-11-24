@@ -75,9 +75,7 @@ const App = () => {
                   <Route
                     path="/studio"
                     element={
-                      <ProtectedRoute>
                         <StudioPage />
-                      </ProtectedRoute>
                     }
                   />
                   <Route

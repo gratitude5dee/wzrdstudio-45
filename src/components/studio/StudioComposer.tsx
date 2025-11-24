@@ -30,7 +30,7 @@ import { CombineNode } from './nodes/CombineNode';
 import { CommentNode } from './nodes/CommentNode';
 
 import { WorkflowLibrary } from './panels/WorkflowLibrary';
-import { ExecutionPanel } from './panels/ExecutionPanel';
+import { StudioRightPanel } from './panels/StudioRightPanel';
 import { NodeContextMenu } from './context-menus/NodeContextMenu';
 import { EdgeContextMenu } from './context-menus/EdgeContextMenu';
 import { CanvasContextMenu } from './context-menus/CanvasContextMenu';
@@ -314,7 +314,7 @@ export const StudioComposer = () => {
       </div>
 
       {/* Execution Panel */}
-      <ExecutionPanel />
+      <StudioRightPanel />
     </div>
   );
 };
