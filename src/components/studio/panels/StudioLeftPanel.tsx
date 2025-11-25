@@ -2,13 +2,26 @@ import { DragEvent } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card } from '@/components/ui/card';
-import { Box, FileText, Image as ImageIcon, Layers, Mic, Video, Wand2 } from 'lucide-react';
+import { Box, FileText, Image as ImageIcon, Layers, Mic, Video, Wand2, ScanLine, Edit3, Zap, Smile, Film, Music } from 'lucide-react';
 
 const NODE_TYPES = [
   {
     category: 'Models',
     items: [
       { type: 'workflowNode', label: 'AI Model', icon: Wand2, data: { label: 'New Model' } },
+      { type: 'workflowNode', label: 'FLUX LoRA', icon: Zap, data: { label: 'FLUX LoRA' } },
+      { type: 'workflowNode', label: 'Video Gen', icon: Film, data: { label: 'Video Gen' } },
+      { type: 'workflowNode', label: 'Audio Isolation', icon: Music, data: { label: 'Audio Isolation' } },
+    ]
+  },
+  {
+    category: 'Image Editing',
+    items: [
+      { type: 'workflowNode', label: 'FLUX.1 [redux]', icon: Layers, data: { label: 'FLUX.1 [redux]' } },
+      { type: 'workflowNode', label: 'FLUX.1 [fill]', icon: Edit3, data: { label: 'FLUX.1 [fill]' } },
+      { type: 'workflowNode', label: 'FLUX.1 [canny]', icon: ScanLine, data: { label: 'FLUX.1 [canny]' } },
+      { type: 'workflowNode', label: 'FLUX.1 [depth]', icon: Box, data: { label: 'FLUX.1 [depth]' } },
+      { type: 'workflowNode', label: 'Face Swap', icon: Smile, data: { label: 'Face Swap' } },
     ]
   },
   {
@@ -41,7 +54,7 @@ export const StudioLeftPanel = () => {
       </div>
       <ScrollArea className="flex-1">
         <div className="p-4">
-          <Accordion type="multiple" defaultValue={['Models', 'Inputs', 'Outputs']} className="space-y-4">
+          <Accordion type="multiple" defaultValue={['Models', 'Image Editing', 'Inputs', 'Outputs']} className="space-y-4">
             {NODE_TYPES.map((category) => (
               <AccordionItem value={category.category} key={category.category} className="border-none">
                 <AccordionTrigger className="py-2 text-sm font-medium hover:no-underline">

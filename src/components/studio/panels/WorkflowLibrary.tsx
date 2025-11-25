@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, ChevronDown, ChevronUp, Image, Video, Music, Type, Hash, Box } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Image, Video, Music, Type, Hash, Box, Wand2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -111,6 +111,91 @@ const workflowCategories: WorkflowCategory[] = [
           magic_prompt: { type: 'boolean', label: 'Magic Prompt', required: false, defaultValue: true },
         },
       },
+      {
+        id: 'flux-lora',
+        name: 'FLUX LoRA',
+        description: 'Generate images with custom LoRA adapters',
+        thumbnail: '/flux-lora.png',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/flux-lora',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+          loras: { type: 'text', label: 'LoRA URLs', required: true },
+        },
+      },
+    ],
+  },
+  {
+    id: 'image-editing',
+    name: 'Image Editing',
+    icon: Wand2,
+    workflows: [
+      {
+        id: 'flux-redux',
+        name: 'FLUX.1 [redux]',
+        description: 'Image variation and mixing',
+        thumbnail: '/flux-redux.gif',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/flux/redux',
+        inputs: {
+          image_url: { type: 'image', label: 'Input Image', required: true },
+        },
+      },
+      {
+        id: 'flux-fill',
+        name: 'FLUX.1 [fill]',
+        description: 'Inpainting and outpainting',
+        thumbnail: '/flux-fill.png',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/flux/fill',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+          image_url: { type: 'image', label: 'Input Image', required: true },
+          mask_url: { type: 'image', label: 'Mask Image', required: true },
+        },
+      },
+      {
+        id: 'flux-canny',
+        name: 'FLUX.1 [canny]',
+        description: 'ControlNet edge detection',
+        thumbnail: '/flux-canny.png',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/flux-general/canny',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+          image_url: { type: 'image', label: 'Control Image', required: true },
+        },
+      },
+      {
+        id: 'flux-depth',
+        name: 'FLUX.1 [depth]',
+        description: 'ControlNet depth map',
+        thumbnail: '/flux-depth.png',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/flux-general/depth',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+          image_url: { type: 'image', label: 'Control Image', required: true },
+        },
+      },
+      {
+        id: 'face-swap',
+        name: 'Face Swap',
+        description: 'Swap faces between images',
+        thumbnail: '/faceswap.png',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/face-swap',
+        inputs: {
+          base_image_url: { type: 'image', label: 'Base Image', required: true },
+          swap_image_url: { type: 'image', label: 'Swap Face', required: true },
+        },
+      },
     ],
   },
   {
@@ -169,6 +254,18 @@ const workflowCategories: WorkflowCategory[] = [
           input_image: { type: 'image', label: 'Input Image (Optional)', required: false },
         },
       },
+      {
+        id: 'video-gen',
+        name: 'Video Gen',
+        description: 'General purpose video generation',
+        thumbnail: '/videogen.gif',
+        outputType: 'video',
+        provider: 'fal',
+        modelId: 'fal-ai/fast-svd',
+        inputs: {
+          image_url: { type: 'image', label: 'Input Image', required: true },
+        },
+      },
     ],
   },
   {
@@ -186,6 +283,18 @@ const workflowCategories: WorkflowCategory[] = [
         inputs: {
           prompt: { type: 'text', label: 'Prompt', required: true },
           seconds_total: { type: 'number', label: 'Duration (s)', required: false, defaultValue: 30, min: 1, max: 180 },
+        },
+      },
+      {
+        id: 'audio-isolation',
+        name: 'Audio Isolation',
+        description: 'Isolate vocals or instruments',
+        thumbnail: '/audio-isolation.gif',
+        outputType: 'audio',
+        provider: 'fal',
+        modelId: 'fal-ai/audio-isolation',
+        inputs: {
+          audio_url: { type: 'audio' as any, label: 'Input Audio', required: true },
         },
       },
     ],
@@ -214,7 +323,7 @@ export const WorkflowLibrary = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(['image', 'video', 'audio', '3d'])
+    new Set(['image', 'image-editing', 'video', 'audio', '3d'])
   );
 
   const toggleCategory = (categoryId: string) => {
