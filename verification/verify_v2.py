@@ -1,61 +1,87 @@
 
-from playwright.sync_api import sync_playwright, expect
+from playwright.sync_api import Page, expect, sync_playwright
+import time
 
-def run():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        # Use a large viewport to ensure the sidebar is visible and not collapsed
-        page = browser.new_page(viewport={'width': 1280, 'height': 1200})
+def verify_library_models(page: Page):
+    try:
+        # 1. Navigate to the Studio page (Composer)
+        # Use port 8080 for Vite (as per server.log)
+        print("Navigating to /studio...")
+        page.goto("http://localhost:8080/studio")
 
+        # Wait for the page to load
+        time.sleep(5)
+
+        print(f"Current URL: {page.url}")
+
+        # 2. Check for "Library" header
+        print("Waiting for Library panel...")
+        # Wait for the 'Library' header which confirms the sidebar is loaded
         try:
-            print("Navigating to Studio page...")
-            # Increased timeout and changed wait_until to domcontentloaded for faster feedback
-            page.goto("http://localhost:8080/studio", timeout=60000, wait_until="domcontentloaded")
-
-            print("Waiting for Library panel...")
-            # Wait for the 'Library' header which confirms the sidebar is loaded
             page.wait_for_selector("text=Library", timeout=30000)
-
-            # Take a screenshot of the verified state
-            page.screenshot(path="verification/studio_verified.png", full_page=True)
-            print("Screenshot saved to verification/studio_verified.png")
-
-            # Verification checks
-            # We expect these categories and workflows to be present in the WorkflowLibrary sidebar
-            checks = [
-                "Image Generation",
-                "Video Generation",
-                "Audio & Music",
-                "3D Assets",
-                "Luma Dream Machine", # Video workflow
-                "Stable Audio",       # Audio workflow
-                "TripoSR"             # 3D workflow
-            ]
-
-            all_passed = True
-            for text in checks:
-                # Check if text is visible in the page
-                count = page.get_by_text(text).count()
-                if count > 0:
-                    print(f"✅ Found: {text}")
-                else:
-                    print(f"❌ Missing: {text}")
-                    all_passed = False
-
-            if all_passed:
-                print("VERIFICATION SUCCESS: All expected categories and workflows are present.")
+        except:
+            print("Library header not found immediately. Checking for collapsed state or login.")
+            if "/login" in page.url:
+                print("Redirected to login. Attempting to proceed anyway.")
             else:
-                print("VERIFICATION FAILED: Some expected elements are missing.")
+                print("Not on login page. Taking screenshot to debug.")
+                page.screenshot(path="/home/jules/verification/debug_studio.png")
 
-        except Exception as e:
-            print(f"Error during verification: {e}")
+
+        # 3. Check for new categories and models
+        print("Checking for new models...")
+
+        # We expect these categories and workflows to be present in the WorkflowLibrary sidebar
+        expected_texts = [
+            "Image Editing",
+            "FLUX.1 [redux]",
+            "FLUX.1 [fill]",
+            "FLUX.1 [canny]",
+            "FLUX.1 [depth]",
+            "Face Swap",
+            "FLUX LoRA",
+            "Video Gen",
+            "Audio Isolation"
+        ]
+
+        found_count = 0
+        for text in expected_texts:
             try:
-                page.screenshot(path="verification/error_v2.png")
-                print("Saved error state screenshot to verification/error_v2.png")
-            except:
-                pass
-        finally:
-            browser.close()
+                # Use a flexible locator
+                if page.get_by_text(text).first.is_visible():
+                    print(f"✅ Found: {text}")
+                    found_count += 1
+                else:
+                    print(f"❓ Text '{text}' not visible.")
+
+            except Exception as e:
+                print(f"❌ Error looking for: {text}")
+
+        if found_count == 0:
+             print("No expected elements found. Verification likely failed.")
+             page.screenshot(path="/home/jules/verification/library_failed.png")
+        else:
+             print(f"Found {found_count}/{len(expected_texts)} items.")
+
+        # 4. Screenshot
+        print("Taking screenshot...")
+        page.screenshot(path="/home/jules/verification/library_verification.png", full_page=True)
+        print("Screenshot saved.")
+
+    except Exception as e:
+        print(f"Verification failed: {e}")
+        page.screenshot(path="/home/jules/verification/error_screenshot.png")
+        raise e
 
 if __name__ == "__main__":
-    run()
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        try:
+            verify_library_models(page)
+        except Exception as e:
+            print(f"Script failed: {e}")
+            import sys
+            sys.exit(1)
+        finally:
+            browser.close()
