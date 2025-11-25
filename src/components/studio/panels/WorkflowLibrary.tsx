@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Search, ChevronDown, ChevronUp, Image, Video, Music, Type, Hash, Box, Wand2 } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Image, Video, Music, Type, Hash, Box, Wand2, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { ARENA_MODELS } from '@/lib/arena/test-suites';
 
 interface WorkflowCategory {
   id: string;
@@ -20,6 +21,9 @@ interface WorkflowTemplate {
   outputType: 'image' | 'video' | 'audio' | 'text' | '3d';
   provider: 'fal' | 'replicate' | 'internal';
   modelId?: string; // The actual model ID/path on the provider
+  isFree?: boolean;
+  isAlpha?: boolean;
+  isBeta?: boolean;
   inputs: Record<string, {
     type: string;
     label: string;
@@ -33,6 +37,158 @@ interface WorkflowTemplate {
 }
 
 const workflowCategories: WorkflowCategory[] = [
+  {
+    id: 'wzrd-models',
+    name: 'WZRD Models',
+    icon: Sparkles,
+    workflows: [
+      // Internal Alpha Models (FREE)
+      {
+        id: 'alpha-232-t2i',
+        name: 'Alpha-232 T2I',
+        description: 'Internal alpha model for text-to-image generation',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/alpha-image-232/text-to-image',
+        isFree: true,
+        isAlpha: true,
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+        },
+      },
+      {
+        id: 'alpha-232-edit',
+        name: 'Alpha-232 Edit',
+        description: 'Internal alpha model for image editing',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/alpha-image-232/edit-image',
+        isFree: true,
+        isAlpha: true,
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+          image_url: { type: 'image', label: 'Input Image', required: true },
+        },
+      },
+      // Internal Beta Models (FREE)
+      {
+        id: 'beta-232-t2i',
+        name: 'Beta-232 T2I',
+        description: 'Internal beta model for text-to-image',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/beta-image-232',
+        isFree: true,
+        isBeta: true,
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+        },
+      },
+      {
+        id: 'beta-232-edit',
+        name: 'Beta-232 Edit',
+        description: 'Internal beta model for image editing',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/beta-image-232/edit',
+        isFree: true,
+        isBeta: true,
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+          image_url: { type: 'image', label: 'Input Image', required: true },
+        },
+      },
+      // Production Models
+      {
+        id: 'nano-banana-pro',
+        name: 'Nano Banana Pro',
+        description: 'High-quality production image generation',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/nano-banana-pro',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+        },
+      },
+      {
+        id: 'reve',
+        name: 'Reve',
+        description: 'Advanced text-to-image generation',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/reve',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+        },
+      },
+      {
+        id: 'hunyuan-v3',
+        name: 'Hunyuan Image V3',
+        description: 'Powerful image generation from Tencent',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/hunyuan-image/v3/text-to-image',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+        },
+      },
+      {
+        id: 'seedream-v4',
+        name: 'SeeDream V4',
+        description: 'ByteDance high-quality image generation',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/bytedance/seedream/v4/text-to-image',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+        },
+      },
+      {
+        id: 'ideogram-v3',
+        name: 'Ideogram V3',
+        description: 'Excellent typography and prompt adherence',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/ideogram/v3',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+        },
+      },
+      {
+        id: 'hidream-fast',
+        name: 'Hidream I1 Fast',
+        description: 'Fast inference image generation',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/hidream-i1-fast',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+        },
+      },
+      {
+        id: 'hidream-dev',
+        name: 'Hidream I1 Dev',
+        description: 'Development version of Hidream',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/hidream-i1-dev',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+        },
+      },
+      {
+        id: 'minimax-image',
+        name: 'MiniMax Image-01',
+        description: 'High-fidelity image synthesis',
+        outputType: 'image',
+        provider: 'fal',
+        modelId: 'fal-ai/minimax/image-01',
+        inputs: {
+          prompt: { type: 'text', label: 'Prompt', required: true },
+        },
+      },
+    ],
+  },
   {
     id: 'image',
     name: 'Image Generation',
@@ -323,7 +479,7 @@ export const WorkflowLibrary = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(['image', 'image-editing', 'video', 'audio', '3d'])
+    new Set(['wzrd-models', 'image', 'image-editing', 'video', 'audio', '3d'])
   );
 
   const toggleCategory = (categoryId: string) => {
@@ -350,6 +506,9 @@ export const WorkflowLibrary = () => {
       inputValues: {}, // Empty values initially
       outputType: workflow.outputType,
       thumbnail: workflow.thumbnail,
+      isFree: workflow.isFree,
+      isAlpha: workflow.isAlpha,
+      isBeta: workflow.isBeta,
     }));
     event.dataTransfer.effectAllowed = 'move';
   };
@@ -437,10 +596,12 @@ export const WorkflowLibrary = () => {
                       draggable
                       onDragStart={(e) => onDragStart(e, workflow)}
                       className={cn(
-                        "p-3 rounded-lg border border-border-default",
+                        "group p-3 rounded-lg border",
+                        "bg-card/50 backdrop-blur-sm border-border/50",
                         "cursor-grab active:cursor-grabbing",
-                        "hover:border-primary hover:bg-accent/5",
-                        "transition-all duration-200"
+                        "hover:border-primary/50 hover:bg-card/80 hover:-translate-y-0.5",
+                        "hover:shadow-lg hover:shadow-primary/10",
+                        "transition-all duration-300 ease-out"
                       )}
                     >
                       {/* Thumbnail */}
@@ -457,11 +618,28 @@ export const WorkflowLibrary = () => {
 
                       {/* Info */}
                       <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-sm">{workflow.name}</h3>
-                          <Badge variant="outline" className="text-[10px] px-1 h-4 uppercase">
-                            {workflow.provider}
-                          </Badge>
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="font-medium text-sm flex-1">{workflow.name}</h3>
+                          <div className="flex items-center gap-1">
+                            {workflow.isAlpha && (
+                              <Badge className="text-[10px] px-1.5 h-5 bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30">
+                                ALPHA
+                              </Badge>
+                            )}
+                            {workflow.isBeta && (
+                              <Badge className="text-[10px] px-1.5 h-5 bg-orange-500/20 text-orange-400 border-orange-500/30 hover:bg-orange-500/30">
+                                BETA
+                              </Badge>
+                            )}
+                            {workflow.isFree && (
+                              <Badge className="text-[10px] px-1.5 h-5 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30">
+                                FREE
+                              </Badge>
+                            )}
+                            <Badge variant="outline" className="text-[10px] px-1 h-4 uppercase">
+                              {workflow.provider}
+                            </Badge>
+                          </div>
                         </div>
                         <p className="text-xs text-muted-foreground line-clamp-2">
                           {workflow.description}
