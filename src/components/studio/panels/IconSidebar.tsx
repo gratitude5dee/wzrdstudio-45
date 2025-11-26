@@ -3,6 +3,7 @@ import { Plus, Blocks, Clock, Link2, Sparkles, MessageCircle, HelpCircle, User }
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { WorkflowLibrary } from './WorkflowLibrary';
+import { HistoryPanel } from './HistoryPanel';
 
 interface IconSidebarProps {
   onAddNode?: () => void;
@@ -108,6 +109,12 @@ export const IconSidebar: FC<IconSidebarProps> = ({ onAddNode }) => {
       {activePanel === 'blocks' && (
         <div className="w-80 border-r border-[#1a1a1a] animate-in slide-in-from-left duration-200">
           <WorkflowLibrary />
+        </div>
+      )}
+
+      {activePanel === 'history' && (
+        <div className="w-80 border-r border-[#1a1a1a] animate-in slide-in-from-left duration-200">
+          <HistoryPanel />
         </div>
       )}
     </>
