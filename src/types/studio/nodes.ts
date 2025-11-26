@@ -38,9 +38,36 @@ export type CommentNodeData = {
   height: number;
 };
 
+// FLUX-style node types
+export type ImageOutputNodeData = BaseNodeData & {
+  images: string[];
+  selectedIndex?: number;
+};
+
+export type PromptInputNodeData = BaseNodeData & {
+  prompt: string;
+  references: Array<{ id: string; thumbnail: string }>;
+  generationCount: number;
+  status?: 'idle' | 'generating' | 'complete';
+};
+
+export type ReferenceNodeData = BaseNodeData & {
+  imageUrl: string;
+  type?: 'image' | 'document' | 'chart';
+};
+
+export type TextPromptNodeData = BaseNodeData & {
+  content: string;
+  suggestion?: string;
+};
+
 export type StudioNode =
   | Node<WorkflowNodeData, 'workflowNode'>
   | Node<PrimitiveNodeData, 'primitiveNode'>
   | Node<ResultNodeData, 'resultNode'>
   | Node<CombineNodeData, 'combineNode'>
-  | Node<CommentNodeData, 'comment'>;
+  | Node<CommentNodeData, 'comment'>
+  | Node<ImageOutputNodeData, 'imageOutput'>
+  | Node<PromptInputNodeData, 'promptInput'>
+  | Node<ReferenceNodeData, 'reference'>
+  | Node<TextPromptNodeData, 'textPrompt'>;

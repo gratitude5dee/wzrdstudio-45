@@ -4,16 +4,17 @@ import {
   Background,
   Controls,
   MiniMap,
-  Panel,
   useReactFlow,
   ConnectionMode,
   NodeTypes,
+  EdgeTypes,
   addEdge,
   applyNodeChanges,
   applyEdgeChanges,
   Node,
   Edge,
   NodeChange,
+  BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -28,26 +29,43 @@ import PrimitiveNode from './nodes/PrimitiveNode';
 import ResultNode from './nodes/ResultNode';
 import CombineNode from './nodes/CombineNode';
 import CommentNode from './nodes/CommentNode';
+import { ImageOutputNode } from './nodes/ImageOutputNode';
+import { PromptInputNode } from './nodes/PromptInputNode';
+import { ReferenceNode } from './nodes/ReferenceNode';
+import { TextPromptNode } from './nodes/TextPromptNode';
+import { StudioEdge } from './edges/StudioEdge';
 
-import { WorkflowLibrary } from './panels/WorkflowLibrary';
-import { StudioRightPanel } from './panels/StudioRightPanel';
+import { IconSidebar } from './panels/IconSidebar';
+import { PropertiesPanel } from './panels/PropertiesPanel';
+import { FloatingToolbar } from './toolbar/FloatingToolbar';
 import { NodeContextMenu } from './context-menus/NodeContextMenu';
 import { EdgeContextMenu } from './context-menus/EdgeContextMenu';
 import { CanvasContextMenu } from './context-menus/CanvasContextMenu';
 
 const nodeTypes: NodeTypes = {
+  // Legacy node types
   workflowNode: WorkflowNode,
   primitiveNode: PrimitiveNode,
   resultNode: ResultNode,
   combineNode: CombineNode,
   comment: CommentNode,
+  // FLUX-style node types
+  imageOutput: ImageOutputNode,
+  promptInput: PromptInputNode,
+  reference: ReferenceNode,
+  textPrompt: TextPromptNode,
+};
+
+const edgeTypes = {
+  default: StudioEdge,
 };
 
 const defaultEdgeOptions = {
-  animated: true,
+  type: 'smoothstep',
+  animated: false,
   style: {
-    strokeWidth: 3,
-    stroke: 'rgba(59, 130, 246, 0.5)'
+    strokeWidth: 1.5,
+    stroke: '#444444',
   },
 };
 
@@ -236,10 +254,13 @@ export const StudioComposer = () => {
     }
   }, []);
 
+  const selectedNodes = nodes.filter((n) => n.selected);
+  const selectedNode = selectedNodes.length === 1 ? selectedNodes[0] : null;
+
   return (
-    <div className="h-full w-full flex">
-      {/* Workflow Library Sidebar */}
-      <WorkflowLibrary />
+    <div className="h-full w-full flex bg-[#0a0a0a]">
+      {/* Slim Icon Sidebar */}
+      <IconSidebar onAddNode={() => console.log('Add node clicked')} />
 
       {/* Main Canvas */}
       <div ref={reactFlowWrapper} className="flex-1 relative">
@@ -257,33 +278,28 @@ export const StudioComposer = () => {
           onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
           connectionMode={ConnectionMode.Loose}
           fitView
-          className="bg-background"
+          className="bg-[#0a0a0a]"
           deleteKeyCode={[]} // Handle in keyboard shortcuts
         >
-          <Background />
+          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#1a1a1a" />
           <Controls />
-          <MiniMap />
-
-          {/* Top toolbar */}
-          <Panel position="top-center">
-            <div className="bg-surface-primary border border-border-default rounded-lg px-4 py-2 flex items-center gap-4 shadow-lg bg-background">
-              <span className="text-sm font-semibold">
-                {useComposerStore((state) => state.meta.title)}
-              </span>
-              <div className="flex items-center gap-2">
-                <Button size="sm" variant="ghost" onClick={() => useComposerStore.getState().undo()}>
-                  Undo
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => useComposerStore.getState().redo()}>
-                  Redo
-                </Button>
-              </div>
-            </div>
-          </Panel>
+          <MiniMap 
+            nodeColor={() => '#1a1a1a'}
+            maskColor="rgba(10, 10, 10, 0.9)"
+          />
         </ReactFlow>
+
+        {/* Floating Toolbar */}
+        {selectedNode && (
+          <FloatingToolbar 
+            selectedNodeId={selectedNode.id}
+            position={{ x: window.innerWidth / 2, y: 80 }}
+          />
+        )}
 
         {/* Context Menus */}
         {contextMenu?.type === 'node' && (
@@ -313,8 +329,8 @@ export const StudioComposer = () => {
         )}
       </div>
 
-      {/* Execution Panel */}
-      <StudioRightPanel />
+      {/* Right Properties Panel */}
+      <PropertiesPanel selectedNode={selectedNode} />
     </div>
   );
 };

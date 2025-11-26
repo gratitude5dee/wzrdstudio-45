@@ -34,36 +34,26 @@ export const StudioEdge: FC<EdgeProps> = ({
   });
 
   const getStrokeColor = () => {
-    if (selected) return 'hsl(var(--primary))';
-    switch (status) {
-      case 'running': return 'hsl(var(--chart-1))';
-      case 'succeeded': return 'hsl(var(--chart-4))';
-      case 'error': return 'hsl(var(--destructive))';
-      default: return 'hsl(var(--border))';
-    }
+    if (selected) return '#888888';
+    if (isHovered) return '#666666';
+    return '#444444';
+  };
+
+  const getStrokeWidth = () => {
+    if (selected) return 2.5;
+    if (isHovered) return 2;
+    return 1.5;
   };
 
   return (
     <>
-      {/* Glow effect */}
-      <BaseEdge
-        id={`${id}-glow`}
-        path={edgePath}
-        style={{
-          stroke: getStrokeColor(),
-          strokeWidth: isHovered || selected ? 6 : 5,
-          opacity: 0.3,
-          filter: 'blur(4px)',
-        }}
-      />
-
-      {/* Main edge */}
+      {/* Main edge - smooth bezier */}
       <BaseEdge
         id={id}
         path={edgePath}
         style={{
           stroke: getStrokeColor(),
-          strokeWidth: isHovered || selected ? 3 : 2,
+          strokeWidth: getStrokeWidth(),
           strokeLinecap: 'round',
         }}
         onMouseEnter={() => setIsHovered(true)}
