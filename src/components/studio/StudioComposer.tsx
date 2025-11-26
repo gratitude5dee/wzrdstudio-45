@@ -48,6 +48,12 @@ import { StudioControls } from './controls/StudioControls';
 import { KeyboardShortcutsModal } from './overlays/KeyboardShortcutsModal';
 import { SnapGuides } from './overlays/SnapGuides';
 import { CommandPalette } from './overlays/CommandPalette';
+import { NodePreview } from './overlays/NodePreview';
+import { WorkflowListModal } from './modals/WorkflowListModal';
+import { ExportModal } from './modals/ExportModal';
+import { StudioTour } from './onboarding/StudioTour';
+import { ErrorBoundary } from './ErrorBoundary';
+import EmptyCanvasState from './EmptyCanvasState';
 import StudioBottomBar from './StudioBottomBar';
 import { useSnapToGrid } from '@/hooks/studio/useSnapToGrid';
 
@@ -103,6 +109,14 @@ export const StudioComposer = () => {
   // State for keyboard shortcuts modal
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showWorkflowList, setShowWorkflowList] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+  const [previewNode, setPreviewNode] = useState<{
+    nodeId: string;
+    imageUrl?: string;
+    metadata?: any;
+  } | null>(null);
 
   // State for snap guides
   const [alignmentGuides, setAlignmentGuides] = useState<{
@@ -281,8 +295,25 @@ export const StudioComposer = () => {
           fitView
           className="bg-studio-canvas"
           deleteKeyCode={[]} // Handle in keyboard shortcuts
+          onContextMenu={handleContextMenu}
+          data-tour="canvas"
         >
-          <Background 
+          {/* Empty State */}
+          {nodes.length === 0 && (
+            <EmptyCanvasState
+              onAddBlock={(type) => {
+                const center = reactFlowInstance.screenToFlowPosition({
+                  x: window.innerWidth / 2,
+                  y: window.innerHeight / 2,
+                });
+                addNode(type === 'text' ? 'textPrompt' : type === 'image' ? 'imageOutput' : 'reference', {}, center);
+              }}
+              onOpenTemplates={() => setShowTour(true)}
+              onStartTour={() => setShowTour(true)}
+            />
+          )}
+          
+          <Background
             variant={BackgroundVariant.Dots} 
             gap={20} 
             size={1} 
@@ -351,6 +382,32 @@ export const StudioComposer = () => {
         isOpen={showCommandPalette}
         onClose={() => setShowCommandPalette(false)}
       />
+
+      {/* Workflow Management Modals */}
+      <WorkflowListModal
+        open={showWorkflowList}
+        onOpenChange={setShowWorkflowList}
+      />
+
+      <ExportModal
+        open={showExportModal}
+        onOpenChange={setShowExportModal}
+      />
+
+      {/* Node Preview */}
+      {previewNode && (
+        <NodePreview
+          nodeId={previewNode.nodeId}
+          imageUrl={previewNode.imageUrl}
+          metadata={previewNode.metadata}
+          onClose={() => setPreviewNode(null)}
+        />
+      )}
+
+      {/* Onboarding Tour */}
+      {showTour && (
+        <StudioTour onComplete={() => setShowTour(false)} />
+      )}
     </div>
   );
 };

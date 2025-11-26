@@ -2,6 +2,10 @@ import { FC } from 'react';
 import { FileImage, Wand2, Grid3x3, Video, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useComposerStore } from '@/store/studio/useComposerStore';
+import { workflowTemplates } from '@/data/workflowTemplates';
+import { useReactFlow } from '@xyflow/react';
+import { useToast } from '@/hooks/use-toast';
 
 interface WorkflowTemplate {
   id: string;
@@ -50,9 +54,54 @@ const templates: WorkflowTemplate[] = [
 ];
 
 export const TemplatesPanel: FC = () => {
+  const { fitView } = useReactFlow();
+  const { toast } = useToast();
+  const setNodesAndEdgesWithHistory = useComposerStore((s) => s.setNodesAndEdgesWithHistory);
+  const nodes = useComposerStore((s) => s.nodes);
+  const edges = useComposerStore((s) => s.edges);
+
   const handleTemplateClick = (templateId: string) => {
-    console.log('Template selected:', templateId);
-    // TODO: Implement template loading logic
+    const template = workflowTemplates.find(t => t.id === templateId);
+    if (!template) return;
+
+    // Generate unique IDs for new nodes
+    const idMap = new Map<string, string>();
+    const newNodes = template.nodes.map((node, idx) => {
+      const newId = `${node.type}-${Date.now()}-${idx}`;
+      idMap.set(node.id!, newId);
+      return {
+        ...node,
+        id: newId,
+        position: {
+          x: node.position!.x + 50,
+          y: node.position!.y + 50,
+        },
+      };
+    });
+
+    // Update edge IDs to match new node IDs
+    const newEdges = template.edges.map((edge, idx) => ({
+      ...edge,
+      id: `e-${Date.now()}-${idx}`,
+      source: idMap.get(edge.source!) || edge.source!,
+      target: idMap.get(edge.target!) || edge.target!,
+    }));
+
+    // Add to existing canvas
+    setNodesAndEdgesWithHistory(
+      (currentNodes) => [...currentNodes, ...newNodes as any],
+      (currentEdges) => [...currentEdges, ...newEdges as any]
+    );
+
+    // Center view on new nodes
+    setTimeout(() => {
+      fitView({ padding: 0.2, duration: 400 });
+    }, 100);
+
+    toast({
+      title: 'Template loaded',
+      description: `${template.name} added to canvas`,
+    });
   };
 
   return (
@@ -68,7 +117,7 @@ export const TemplatesPanel: FC = () => {
       {/* Templates List */}
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-2">
-          {templates.map((template) => (
+          {workflowTemplates.map((template) => (
             <Button
               key={template.id}
               variant="ghost"
