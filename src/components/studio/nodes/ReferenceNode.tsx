@@ -4,6 +4,8 @@ import { Download, MoreHorizontal } from 'lucide-react';
 import { CustomHandle } from '../handles/CustomHandle';
 import { NodeWrapper } from './NodeWrapper';
 import { Button } from '@/components/ui/button';
+import { useExecutionStore } from '@/store/studio/useExecutionStore';
+import { NodeStatusBadge, NodeProgressBar } from '../status/NodeStatusBadge';
 
 interface ReferenceNodeData {
   title: string;
@@ -11,13 +13,25 @@ interface ReferenceNodeData {
   type?: 'image' | 'document' | 'chart';
 }
 
-export const ReferenceNode: FC<NodeProps> = memo(({ data, selected }) => {
+export const ReferenceNode: FC<NodeProps> = memo(({ id, data, selected }) => {
   const [isHovered, setIsHovered] = useState(false);
   const nodeData = data as unknown as ReferenceNodeData;
   const { title, imageUrl } = nodeData;
 
+  // Get execution state
+  const progress = useExecutionStore((s) => s.progress[id] || 0);
+  const error = useExecutionStore((s) => s.errors[id]);
+  const isRunning = useExecutionStore((s) => s.isRunning && s.currentNodeId === id);
+  
+  const status = error ? 'error' : isRunning ? 'generating' : progress >= 1 ? 'complete' : 'idle';
+
   return (
-    <NodeWrapper selected={selected} className="w-[200px]">
+    <NodeWrapper selected={selected} status={status} className="w-[200px]">
+      <NodeStatusBadge 
+        status={isRunning ? 'running' : error ? 'failed' : progress >= 1 ? 'succeeded' : 'idle'} 
+        progress={progress * 100}
+        error={error}
+      />
       {/* Title */}
       <div className="px-3 py-2 border-b border-studio-node-border">
         <span className="text-xs font-medium text-studio-text-secondary uppercase tracking-wider">{title}</span>
@@ -43,6 +57,9 @@ export const ReferenceNode: FC<NodeProps> = memo(({ data, selected }) => {
           </div>
         )}
       </div>
+
+      {/* Progress Bar */}
+      {isRunning && <NodeProgressBar progress={progress * 100} />}
 
       {/* Output Handle */}
       <CustomHandle type="source" position={Position.Right} />

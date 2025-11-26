@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Settings, ChevronRight, CircleDashed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useExecutionStore } from '@/store/studio/useExecutionStore';
+import { useComposerStore } from '@/store/studio/useComposerStore';
 
 interface Task {
   id: string;
@@ -11,23 +13,29 @@ interface Task {
 }
 
 const StudioBottomBar = () => {
-  const [zoom, setZoom] = useState(100);
-  const [tasks, setTasks] = useState<Task[]>([]); // No active tasks initially
   const [isTasksExpanded, setIsTasksExpanded] = useState(false);
+  
+  // Get execution state
+  const isRunning = useExecutionStore((s) => s.isRunning);
+  const progress = useExecutionStore((s) => s.progress);
+  const errors = useExecutionStore((s) => s.errors);
+  const nodes = useComposerStore((s) => s.nodes);
+  
+  // Build tasks from execution progress
+  const tasks: Task[] = Object.entries(progress).map(([nodeId, prog]) => {
+    const node = nodes.find(n => n.id === nodeId);
+    const hasError = errors[nodeId];
+    
+    return {
+      id: nodeId,
+      name: (node?.data?.title as string) || (node?.data?.label as string) || 'Node',
+      status: hasError ? 'failed' : prog >= 1 ? 'completed' : 'active',
+      progress: prog * 100,
+    };
+  });
   
   const activeTaskCount = tasks.filter(task => task.status === 'active').length;
   
-  const handleZoomIn = () => {
-    if (zoom < 200) setZoom(zoom + 25);
-  };
-  
-  const handleZoomOut = () => {
-    if (zoom > 25) setZoom(zoom - 25);
-  };
-  
-  const handleResetZoom = () => {
-    setZoom(100);
-  };
 
   return (
     <div className="w-full bg-[#0a0a0a] border-t border-[#1a1a1a] px-6 py-2 flex items-center justify-between">

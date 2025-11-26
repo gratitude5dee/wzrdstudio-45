@@ -30,6 +30,7 @@ import PrimitiveNode from './nodes/PrimitiveNode';
 import ResultNode from './nodes/ResultNode';
 import CombineNode from './nodes/CombineNode';
 import CommentNode from './nodes/CommentNode';
+import { GroupNode } from './nodes/GroupNode';
 import { ImageOutputNode } from './nodes/ImageOutputNode';
 import { PromptInputNode } from './nodes/PromptInputNode';
 import { ReferenceNode } from './nodes/ReferenceNode';
@@ -62,6 +63,7 @@ const nodeTypes: NodeTypes = {
   promptInput: PromptInputNode,
   reference: ReferenceNode,
   textPrompt: TextPromptNode,
+  group: GroupNode,
 };
 
 const edgeTypes = {
@@ -245,12 +247,13 @@ export const StudioComposer = () => {
   const selectedNode = selectedNodes.length === 1 ? selectedNodes[0] : null;
 
   return (
-    <div className="h-full w-full flex bg-studio-canvas">
-      {/* Slim Icon Sidebar */}
-      <IconSidebar onAddNode={() => console.log('Add node clicked')} />
+    <div className="h-full w-full flex flex-col bg-studio-canvas overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* Slim Icon Sidebar */}
+        <IconSidebar onAddNode={() => console.log('Add node clicked')} />
 
-      {/* Main Canvas */}
-      <div ref={reactFlowWrapper} className="flex-1 relative">
+        {/* Main Canvas */}
+        <div ref={reactFlowWrapper} className="flex-1 relative min-w-0">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -330,8 +333,9 @@ export const StudioComposer = () => {
         )}
       </div>
 
-      {/* Right Properties Panel */}
-      <PropertiesPanel selectedNode={selectedNode} />
+        {/* Right Properties Panel */}
+        <PropertiesPanel selectedNode={selectedNode} />
+      </div>
 
       {/* Bottom Bar */}
       <StudioBottomBar />

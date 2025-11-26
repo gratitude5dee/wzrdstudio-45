@@ -1,9 +1,10 @@
 import { FC, useState } from 'react';
-import { Plus, Blocks, Clock, Link2, Sparkles, MessageCircle, HelpCircle, User } from 'lucide-react';
+import { Plus, Blocks, Clock, Link2, Sparkles, MessageCircle, HelpCircle, User, FileStack } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { WorkflowLibrary } from './WorkflowLibrary';
 import { HistoryPanel } from './HistoryPanel';
+import { TemplatesPanel } from './TemplatesPanel';
 
 interface IconSidebarProps {
   onAddNode?: () => void;
@@ -55,6 +56,19 @@ export const IconSidebar: FC<IconSidebarProps> = ({ onAddNode }) => {
           )}
         >
           <Clock className="h-5 w-5" />
+        </Button>
+
+        {/* Templates */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => togglePanel('templates')}
+          className={cn(
+            'h-10 w-10 rounded-xl text-[#666666] hover:bg-[rgba(255,255,255,0.05)] hover:text-white',
+            activePanel === 'templates' && 'bg-[rgba(255,255,255,0.05)] text-white'
+          )}
+        >
+          <FileStack className="h-5 w-5" />
         </Button>
 
         {/* Connections */}
@@ -115,6 +129,12 @@ export const IconSidebar: FC<IconSidebarProps> = ({ onAddNode }) => {
       {activePanel === 'history' && (
         <div className="w-80 border-r border-[#1a1a1a] animate-in slide-in-from-left duration-200">
           <HistoryPanel />
+        </div>
+      )}
+
+      {activePanel === 'templates' && (
+        <div className="w-80 border-r border-[#1a1a1a] animate-in slide-in-from-left duration-200">
+          <TemplatesPanel />
         </div>
       )}
     </>
