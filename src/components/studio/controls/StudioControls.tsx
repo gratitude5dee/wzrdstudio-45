@@ -1,13 +1,20 @@
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { Plus, Minus, Maximize2, Hand } from 'lucide-react';
-import { useReactFlow } from '@xyflow/react';
+import { useReactFlow, useOnViewportChange } from '@xyflow/react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 
 export const StudioControls: FC = () => {
-  const { zoomIn, zoomOut, fitView, getZoom, setViewport } = useReactFlow();
-  const currentZoom = Math.round(getZoom() * 100);
+  const { zoomIn, zoomOut, fitView, setViewport } = useReactFlow();
+  const [currentZoom, setCurrentZoom] = useState(100);
+
+  // Update zoom display in real-time
+  useOnViewportChange({
+    onChange: (viewport) => {
+      setCurrentZoom(Math.round(viewport.zoom * 100));
+    },
+  });
 
   const handleZoomChange = (value: number[]) => {
     const zoom = value[0] / 100;

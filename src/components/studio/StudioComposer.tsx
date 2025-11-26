@@ -46,6 +46,9 @@ import { CanvasContextMenu } from './context-menus/CanvasContextMenu';
 import { StudioControls } from './controls/StudioControls';
 import { KeyboardShortcutsModal } from './overlays/KeyboardShortcutsModal';
 import { SnapGuides } from './overlays/SnapGuides';
+import { CommandPalette } from './overlays/CommandPalette';
+import StudioBottomBar from './StudioBottomBar';
+import { useSnapToGrid } from '@/hooks/studio/useSnapToGrid';
 
 const nodeTypes: NodeTypes = {
   // Legacy node types
@@ -97,24 +100,53 @@ export const StudioComposer = () => {
 
   // State for keyboard shortcuts modal
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   // State for snap guides
   const [alignmentGuides, setAlignmentGuides] = useState<{
     horizontal: number[];
     vertical: number[];
   }>({ horizontal: [], vertical: [] });
+  const [isDraggingNode, setIsDraggingNode] = useState(false);
+
+  // Snap to grid hook
+  const { snapToGrid } = useSnapToGrid();
 
   // Listen for keyboard shortcuts modal trigger
   useEffect(() => {
     const handleShowShortcuts = () => setShowShortcutsModal(true);
+    const handleShowCommandPalette = () => setShowCommandPalette(true);
+    
     window.addEventListener('show-shortcuts-modal', handleShowShortcuts);
-    return () => window.removeEventListener('show-shortcuts-modal', handleShowShortcuts);
+    window.addEventListener('show-command-palette', handleShowCommandPalette);
+    
+    return () => {
+      window.removeEventListener('show-shortcuts-modal', handleShowShortcuts);
+      window.removeEventListener('show-command-palette', handleShowCommandPalette);
+    };
   }, []);
 
-  // Handle node changes
+  // Handle node changes with snapping
   const onNodesChange = useCallback((changes: NodeChange[]) => {
-    setNodes((nds) => applyNodeChanges(changes, nds));
-  }, [setNodes]);
+    setNodes((nds) => {
+      const updatedNodes = applyNodeChanges(changes, nds);
+      
+      // Apply snapping for position changes during drag
+      if (isDraggingNode) {
+        return updatedNodes.map((node) => {
+          const change = changes.find((c: any) => c.id === node.id && c.type === 'position');
+          if (change && (change as any).dragging) {
+            const snapResult = snapToGrid(node.position, node.id, updatedNodes, true);
+            setAlignmentGuides(snapResult.guides);
+            return { ...node, position: snapResult.position };
+          }
+          return node;
+        });
+      }
+      
+      return updatedNodes;
+    });
+  }, [setNodes, snapToGrid, isDraggingNode]);
 
   // Handle edge changes
   const onEdgesChange = useCallback((changes) => {
@@ -192,6 +224,7 @@ export const StudioComposer = () => {
   const onNodeDragStart = useCallback(() => {
     // Snapshot nodes before drag starts
     dragStartNodes.current = useComposerStore.getState().nodes;
+    setIsDraggingNode(true);
   }, []);
 
   const onNodeDragStop = useCallback(() => {
@@ -199,80 +232,13 @@ export const StudioComposer = () => {
       const currentNodes = useComposerStore.getState().nodes;
       // Only add to history if nodes actually moved/changed
       if (JSON.stringify(dragStartNodes.current) !== JSON.stringify(currentNodes)) {
-        // Manually push previous state to history then current state
-        // Or just call setNodesWithHistory with the *current* nodes to trigger a history save
-        // But setNodesWithHistory compares against *current* state (which is already updated by onNodesChange)
-        // Wait, onNodesChange updates the store via setNodes (no history).
-        // So current store state has the *new* positions.
-        // setNodesWithHistory compares incoming newNodes with store state. If they are same, it might not save.
-
-        // However, our setNodesWithHistory implementation:
-        // const state = get();
-        // const newNodes = updater(state.nodes);
-        // if (JSON.stringify(newNodes) !== JSON.stringify(state.nodes)) { ... }
-
-        // If we pass identity updater, newNodes === state.nodes, so it won't save.
-        // We need a way to force a history entry or use a different mechanism.
-
-        // Actually, we should probably modify `setNodes` to NOT be used for history-sensitive updates,
-        // OR we should use a specialized function.
-        // But `onNodesChange` is firing frequently during drag. We don't want history for every pixel.
-        // That's why we use `setNodes` (no history) in `onNodesChange`.
-
-        // At drag stop, we want to commit the *current* state to history.
-        // But `setNodesWithHistory` works by taking an updater that produces *new* state.
-        // If we want to record that the *previous* state (dragStartNodes) transitions to *current* state,
-        // we might need to manually manipulate history or trick `setNodesWithHistory`.
-
-        // Let's look at `useComposerStore.ts`:
-        // setNodesWithHistory pushes current state to `past`, then updates state.
-        // But current state in store is ALREADY the dragged position!
-        // So if we call setNodesWithHistory now, we push the *dragged* position to past.
-        // That is WRONG. We want the *start* position in past.
-
-        // Solution:
-        // 1. Revert store to dragStartNodes (silently? no, that would flash)
-        // 2. Call setNodesWithHistory with the dragged nodes.
-
-        // Better solution:
-        // Add a specific action `commitHistorySnapshot` that takes the *previous* state to push to history.
-        // Or modify `setNodesWithHistory` logic? No.
-
-        // Let's add `addToHistory` action to store?
-        // Or simply:
-        // 1. Set nodes back to start positions (without history) -> `setNodes(() => dragStartNodes.current)`
-        // 2. Set nodes to new positions (WITH history) -> `setNodesWithHistory(() => currentNodes)`
-
-        const finalNodes = currentNodes;
-        // 1. Revert to start (this might cause a quick flash, but usually React handles it if in same tick? No, async)
-        // Actually, we can just inject the history entry.
-        // But we don't have a public method to just inject history.
-
-        // Let's try the revert-and-set method.
-        // useComposerStore.getState().setNodes(() => dragStartNodes.current!);
-        // useComposerStore.getState().setNodesWithHistory(() => finalNodes);
-
-        // This seems risky for visual glitch.
-        // Ideally we should add a method to store: `pushHistory(previousNodes, previousEdges)`.
-
-        // But I cannot easily change the store interface without modifying the file again.
-        // I can modify `useComposerStore.ts` if needed. I should.
-
-        // Let's modify `useComposerStore.ts` to add `pushToHistory`.
-        // But I am in `StudioComposer.tsx` step.
-        // I'll stick to `setNodes(() => dragStartNodes.current!)` then `setNodesWithHistory(() => finalNodes)`.
-        // Since React batches updates, maybe it won't render the revert?
-        // But `set` in Zustand triggers listeners immediately usually.
-
-        // Let's try the "revert and commit" approach.
         useComposerStore.getState().setNodes(() => dragStartNodes.current!);
-        // We need to defer the second call slightly or ensure it runs?
-        // Actually, if we do it synchronously:
-        useComposerStore.getState().setNodesWithHistory(() => finalNodes);
-
+        useComposerStore.getState().setNodesWithHistory(() => currentNodes);
         dragStartNodes.current = null;
       }
     }
+    setIsDraggingNode(false);
+    setAlignmentGuides({ horizontal: [], vertical: [] });
   }, []);
 
   const selectedNodes = nodes.filter((n) => n.selected);
@@ -367,10 +333,19 @@ export const StudioComposer = () => {
       {/* Right Properties Panel */}
       <PropertiesPanel selectedNode={selectedNode} />
 
+      {/* Bottom Bar */}
+      <StudioBottomBar />
+
       {/* Keyboard Shortcuts Modal */}
       <KeyboardShortcutsModal
         isOpen={showShortcutsModal}
         onClose={() => setShowShortcutsModal(false)}
+      />
+
+      {/* Command Palette */}
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
       />
     </div>
   );

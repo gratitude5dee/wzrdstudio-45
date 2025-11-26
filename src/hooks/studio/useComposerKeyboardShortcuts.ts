@@ -16,6 +16,8 @@ export const useComposerKeyboardShortcuts = () => {
   const { execute } = useExecuteWorkflow();
   const { copy, cut, paste } = useClipboard();
   const { deleteSelectedNodes } = useNodeOperations();
+  const nodes = useComposerStore((state) => state.nodes);
+  const setNodesWithHistory = useComposerStore((state) => state.setNodesWithHistory);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -76,6 +78,40 @@ export const useComposerKeyboardShortcuts = () => {
         useComposerStore.getState().setNodes((nodes) =>
           nodes.map((node) => ({ ...node, selected: true }))
         );
+      }
+
+      // Cmd/Ctrl + K: Command palette
+      if (modifier && e.key === 'k') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('show-command-palette'));
+      }
+
+      // Cmd/Ctrl + G: Group selected nodes
+      if (modifier && e.key === 'g') {
+        e.preventDefault();
+        const selectedNodes = nodes.filter((n) => n.selected);
+        if (selectedNodes.length > 1) {
+          // Calculate bounding box for group
+          const minX = Math.min(...selectedNodes.map((n) => n.position.x));
+          const minY = Math.min(...selectedNodes.map((n) => n.position.y));
+          const maxX = Math.max(...selectedNodes.map((n) => n.position.x + (n.width || 200)));
+          const maxY = Math.max(...selectedNodes.map((n) => n.position.y + (n.height || 100)));
+
+          // Create group node
+          const groupNode = {
+            id: `group-${Date.now()}`,
+            type: 'group',
+            position: { x: minX - 20, y: minY - 40 },
+            data: { 
+              label: 'Group',
+              width: maxX - minX + 40,
+              height: maxY - minY + 60,
+            },
+            style: { width: maxX - minX + 40, height: maxY - minY + 60 },
+          };
+
+          setNodesWithHistory((nds) => [...nds, groupNode]);
+        }
       }
 
       // ?: Show keyboard shortcuts
