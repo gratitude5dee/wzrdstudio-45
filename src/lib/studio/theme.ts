@@ -1,25 +1,73 @@
 /**
- * Studio Theme System - Pixel-Perfect Design Specifications
- * Inspired by FLUX/fal.ai professional workflow canvas
+ * Studio Theme System - Single Source of Truth
+ * All design tokens for FLUX/fal.ai-style workflow canvas
+ * Used across components, CSS variables, and Tailwind config
  */
 
-// FLUX-style color palette
-export const fluxTheme = {
+// Consolidated Studio Color System
+export const studioColors = {
   canvas: '#0a0a0a',
-  nodeBackground: '#1a1a1a',
-  nodeBackgroundHover: '#222222',
-  inputBackground: '#0d0d0d',
+  grid: '#1a1a1a',
+  
+  node: {
+    bg: '#1a1a1a',
+    bgHover: '#222222',
+    bgInput: '#0d0d0d',
+    border: '#333333',
+    borderHover: '#505050',
+    borderSelected: '#666666',
+  },
+  
+  text: {
+    primary: '#ffffff',
+    secondary: '#888888',
+    muted: '#555555',
+  },
+  
+  handle: {
+    border: '#666666',
+    hover: '#ffffff',
+  },
+  
+  edge: {
+    default: '#444444',
+    hover: '#666666',
+    selected: '#888888',
+    connecting: '#999999',
+  },
+  
+  accent: {
+    primary: '#50EF12',  // Green
+    purple: '#8B5CF6',
+    cyan: '#00E5FF',
+    blue: '#3B82F6',
+  },
+  
+  status: {
+    generating: '#50EF12',
+    success: '#22c55e',
+    error: '#ef4444',
+    warning: '#f59e0b',
+  },
+} as const;
+
+// Legacy FLUX theme (for backwards compatibility)
+export const fluxTheme = {
+  canvas: studioColors.canvas,
+  nodeBackground: studioColors.node.bg,
+  nodeBackgroundHover: studioColors.node.bgHover,
+  inputBackground: studioColors.node.bgInput,
   borderSubtle: '#2a2a2a',
-  borderNode: '#333333',
-  borderNodeSelected: '#666666',
-  textPrimary: '#ffffff',
-  textSecondary: '#888888',
-  textMuted: '#555555',
-  handleBorder: '#666666',
-  handleHover: '#ffffff',
-  edgeDefault: '#444444',
-  edgeHover: '#666666',
-  edgeSelected: '#888888',
+  borderNode: studioColors.node.border,
+  borderNodeSelected: studioColors.node.borderSelected,
+  textPrimary: studioColors.text.primary,
+  textSecondary: studioColors.text.secondary,
+  textMuted: studioColors.text.muted,
+  handleBorder: studioColors.handle.border,
+  handleHover: studioColors.handle.hover,
+  edgeDefault: studioColors.edge.default,
+  edgeHover: studioColors.edge.hover,
+  edgeSelected: studioColors.edge.selected,
 };
 
 export const studioTheme = {

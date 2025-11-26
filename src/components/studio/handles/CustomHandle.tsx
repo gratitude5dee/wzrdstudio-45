@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Handle, Position, HandleProps } from '@xyflow/react';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +17,9 @@ export const CustomHandle: FC<CustomHandleProps> = ({
   className,
   ...props
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isConnecting] = useState(false);
+
   return (
     <Handle
       type={type}
@@ -24,14 +27,27 @@ export const CustomHandle: FC<CustomHandleProps> = ({
       id={id}
       isConnectable={isConnectable}
       className={cn(
-        'w-5 h-5 rounded-full border-2 transition-all',
-        'bg-transparent border-[#666666]',
-        'hover:border-white',
+        'w-5 h-5 rounded-full border-2 transition-all duration-150',
+        'bg-transparent',
+        
+        // State-based styling
+        isConnecting 
+          ? 'border-studio-handle-hover scale-125 animate-studio-handle-pulse' 
+          : isHovered 
+            ? 'border-studio-handle-hover scale-110' 
+            : 'border-studio-handle-border',
+        
+        // Plus icon
         'flex items-center justify-center',
-        'before:content-["+"] before:text-[#666666] before:text-sm before:font-light',
-        'hover:before:text-white',
+        'before:content-["+"] before:text-sm before:font-light',
+        isHovered || isConnecting 
+          ? 'before:text-studio-handle-hover' 
+          : 'before:text-studio-handle-border',
+        
         className
       )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       {...props}
     />
   );

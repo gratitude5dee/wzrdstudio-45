@@ -98,6 +98,39 @@ export default {
 					'accent-purple': 'hsl(var(--accent-purple))',
 					'connector-default': 'hsl(var(--connector-default))',
 					'connector-active': 'hsl(var(--connector-active))'
+				},
+				studio: {
+					canvas: 'hsl(var(--studio-canvas))',
+					'canvas-grid': 'hsl(var(--studio-canvas-grid))',
+					node: {
+						bg: 'hsl(var(--studio-node-bg))',
+						'bg-hover': 'hsl(var(--studio-node-bg-hover))',
+						'bg-input': 'hsl(var(--studio-node-bg-input))',
+						border: 'hsl(var(--studio-node-border))',
+						'border-hover': 'hsl(var(--studio-node-border-hover))',
+						'border-selected': 'hsl(var(--studio-node-border-selected))',
+					},
+					text: {
+						primary: 'hsl(var(--studio-text-primary))',
+						secondary: 'hsl(var(--studio-text-secondary))',
+						muted: 'hsl(var(--studio-text-muted))',
+					},
+					handle: {
+						border: 'hsl(var(--studio-handle-border))',
+						hover: 'hsl(var(--studio-handle-hover))',
+					},
+					edge: {
+						default: 'hsl(var(--studio-edge-default))',
+						hover: 'hsl(var(--studio-edge-hover))',
+						selected: 'hsl(var(--studio-edge-selected))',
+						connecting: 'hsl(var(--studio-edge-connecting))',
+					},
+					accent: {
+						primary: 'hsl(var(--studio-accent-primary))',
+						purple: 'hsl(var(--studio-accent-purple))',
+						cyan: 'hsl(var(--studio-accent-cyan))',
+						blue: 'hsl(var(--studio-accent-blue))',
+					},
 				}
 			},
 			fontFamily: {
@@ -211,7 +244,16 @@ export default {
 				'slide-up': 'slide-up 0.8s ease-out',
 				'fade-in': 'fade-in 1s ease-out',
 				'hologram': 'hologram 3s ease-in-out infinite',
-				'stars': 'stars 20s linear infinite'
+				'stars': 'stars 20s linear infinite',
+				// Studio Animations
+				'studio-node-appear': 'studio-node-appear 0.2s ease-out',
+				'studio-node-selected': 'studio-node-selected 0.4s ease-out',
+				'studio-drag-preview': 'studio-drag-preview 1s ease-in-out infinite',
+				'studio-connection-dash': 'studio-connection-dash 0.5s linear infinite',
+				'studio-handle-pulse': 'studio-handle-pulse 1.5s ease-in-out infinite',
+				'studio-data-flow': 'studio-data-flow 2s ease-in-out infinite',
+				'studio-generating': 'studio-generating 2s ease-in-out infinite',
+				'studio-success-flash': 'studio-success-flash 0.5s ease-out',
 			},
 			backgroundImage: {
 				'noise': 'url("/noise.png")',
