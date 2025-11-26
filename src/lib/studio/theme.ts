@@ -1,7 +1,26 @@
 /**
  * Studio Theme System - Pixel-Perfect Design Specifications
- * Inspired by ComfyUI/Blender node editors
+ * Inspired by FLUX/fal.ai professional workflow canvas
  */
+
+// FLUX-style color palette
+export const fluxTheme = {
+  canvas: '#0a0a0a',
+  nodeBackground: '#1a1a1a',
+  nodeBackgroundHover: '#222222',
+  inputBackground: '#0d0d0d',
+  borderSubtle: '#2a2a2a',
+  borderNode: '#333333',
+  borderNodeSelected: '#666666',
+  textPrimary: '#ffffff',
+  textSecondary: '#888888',
+  textMuted: '#555555',
+  handleBorder: '#666666',
+  handleHover: '#ffffff',
+  edgeDefault: '#444444',
+  edgeHover: '#666666',
+  edgeSelected: '#888888',
+};
 
 export const studioTheme = {
   // Backgrounds

@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { Minus, Plus, Maximize, ChevronRight, CircleDashed } from 'lucide-react';
+import { Settings, ChevronRight, CircleDashed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -31,73 +30,49 @@ const StudioBottomBar = () => {
   };
 
   return (
-    <div className="w-full bg-black border-t border-zinc-800/50 px-6 py-2 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-zinc-400 hover:text-white"
-          onClick={handleZoomOut}
-          disabled={zoom <= 25}
-        >
-          <Minus className="h-4 w-4" />
+    <div className="w-full bg-[#0a0a0a] border-t border-[#1a1a1a] px-6 py-2 flex items-center justify-between">
+      {/* Left: Credits & Token Count */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#666666] hover:text-white">
+          <Settings className="h-4 w-4" />
         </Button>
-        <Button
-          variant="ghost"
-          className="h-8 text-zinc-400 hover:text-white px-2 py-0"
-          onClick={handleResetZoom}
-        >
-          <span className="text-sm">{zoom}%</span>
+        <span className="text-sm text-[#888888]">88.1M</span>
+        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#666666] hover:text-white">
+          <CircleDashed className="h-4 w-4" />
         </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-zinc-400 hover:text-white"
-          onClick={handleZoomIn}
-          disabled={zoom >= 200}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-zinc-400 hover:text-white ml-1"
-        >
-          <Maximize className="h-4 w-4" />
-        </Button>
-        <span className="text-zinc-600 text-xs ml-2">2K</span>
       </div>
       
+      {/* Right: Queue Status */}
       <div className="flex items-center gap-2">
         <Button 
           variant="ghost" 
           className={cn(
-            "text-zinc-400 hover:text-white",
-            activeTaskCount > 0 && "text-zinc-300"
+            "h-8 text-[#888888] hover:text-white text-sm",
+            activeTaskCount > 0 && "text-white"
           )}
           onClick={() => setIsTasksExpanded(!isTasksExpanded)}
         >
-          Tasks <span className={cn("ml-1", activeTaskCount > 0 ? "text-blue-400" : "text-zinc-600")}>{activeTaskCount} active</span>
+          Queue <span className={cn("ml-2", activeTaskCount > 0 ? "text-blue-400" : "text-[#555555]")}>{activeTaskCount} active</span>
         </Button>
         <ChevronRight className={cn(
-          "h-4 w-4 text-zinc-600 transition-transform", 
+          "h-4 w-4 text-[#555555] transition-transform", 
           isTasksExpanded && "rotate-90"
         )} />
         
         {isTasksExpanded && activeTaskCount > 0 && (
-          <div className="absolute bottom-12 right-6 bg-zinc-900 border border-zinc-800 rounded-lg p-4 shadow-xl w-80">
-            <h3 className="text-sm font-medium text-zinc-300 mb-3">Active Tasks</h3>
+          <div className="absolute bottom-14 right-6 bg-[#1a1a1a] border border-[#333333] rounded-xl p-4 shadow-2xl w-80 backdrop-blur-lg">
+            <h3 className="text-sm font-medium text-white mb-4">Active Generations</h3>
             <div className="space-y-3">
               {tasks.filter(task => task.status === 'active').map(task => (
-                <div key={task.id} className="flex items-center">
-                  <CircleDashed className="h-4 w-4 text-blue-400 animate-spin mr-2" />
-                  <div className="flex-1">
-                    <div className="text-xs text-zinc-300">{task.name}</div>
-                    <div className="h-1.5 bg-zinc-800 rounded-full mt-1.5 overflow-hidden">
+                <div key={task.id} className="flex items-center gap-3">
+                  <CircleDashed className="h-4 w-4 text-blue-400 animate-spin flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-white truncate">{task.name}</div>
+                    <div className="h-1.5 bg-[#0d0d0d] rounded-full mt-2 overflow-hidden">
                       <div 
-                        className="h-full bg-blue-500 rounded-full"
+                        className="h-full bg-blue-500 rounded-full transition-all"
                         style={{ width: `${task.progress || 0}%` }}
-                      ></div>
+                      />
                     </div>
                   </div>
                 </div>
