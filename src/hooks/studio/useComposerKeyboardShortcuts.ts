@@ -1,8 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useComposerStore } from '@/store/studio/useComposerStore';
 import { useExecuteWorkflow } from './useExecuteWorkflow';
 import { useClipboard } from './useClipboard';
 import { useNodeOperations } from './useNodeOperations';
+
+// Export hook for shortcuts modal state
+export const useKeyboardShortcutsModal = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  return { isOpen, open: () => setIsOpen(true), close: () => setIsOpen(false) };
+};
 
 export const useComposerKeyboardShortcuts = () => {
   const undo = useComposerStore((state) => state.undo);
@@ -70,6 +76,13 @@ export const useComposerKeyboardShortcuts = () => {
         useComposerStore.getState().setNodes((nodes) =>
           nodes.map((node) => ({ ...node, selected: true }))
         );
+      }
+
+      // ?: Show keyboard shortcuts
+      if (e.key === '?' && !modifier) {
+        e.preventDefault();
+        // Dispatch custom event to show shortcuts modal
+        window.dispatchEvent(new CustomEvent('show-shortcuts-modal'));
       }
     };
 

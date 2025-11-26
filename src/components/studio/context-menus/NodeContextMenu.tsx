@@ -113,7 +113,10 @@ export const NodeContextMenu = ({ node, position, onClose }: NodeContextMenuProp
         onClick={handleDuplicate}
       >
         <Copy className="mr-2 h-4 w-4" />
-        Duplicate
+        <span className="flex-1">Duplicate</span>
+        <kbd className="ml-4 px-1.5 py-0.5 text-xs font-mono bg-muted border border-border rounded opacity-60">
+          Cmd+D
+        </kbd>
       </div>
 
       <div
@@ -181,7 +184,10 @@ export const NodeContextMenu = ({ node, position, onClose }: NodeContextMenuProp
         onClick={handleDelete}
       >
         <Trash2 className="mr-2 h-4 w-4" />
-        Delete
+        <span className="flex-1">Delete</span>
+        <kbd className="ml-4 px-1.5 py-0.5 text-xs font-mono bg-muted border border-border rounded opacity-60">
+          Del
+        </kbd>
       </div>
 
       {/* Backdrop to close menu */}

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -15,6 +15,7 @@ import {
   Edge,
   NodeChange,
   BackgroundVariant,
+  SelectionMode,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -42,6 +43,9 @@ import { FloatingToolbar } from './toolbar/FloatingToolbar';
 import { NodeContextMenu } from './context-menus/NodeContextMenu';
 import { EdgeContextMenu } from './context-menus/EdgeContextMenu';
 import { CanvasContextMenu } from './context-menus/CanvasContextMenu';
+import { StudioControls } from './controls/StudioControls';
+import { KeyboardShortcutsModal } from './overlays/KeyboardShortcutsModal';
+import { SnapGuides } from './overlays/SnapGuides';
 
 const nodeTypes: NodeTypes = {
   // Legacy node types
@@ -90,6 +94,22 @@ export const StudioComposer = () => {
 
   // Use refs to track drag start state for undo
   const dragStartNodes = useRef<Node[] | null>(null);
+
+  // State for keyboard shortcuts modal
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+
+  // State for snap guides
+  const [alignmentGuides, setAlignmentGuides] = useState<{
+    horizontal: number[];
+    vertical: number[];
+  }>({ horizontal: [], vertical: [] });
+
+  // Listen for keyboard shortcuts modal trigger
+  useEffect(() => {
+    const handleShowShortcuts = () => setShowShortcutsModal(true);
+    window.addEventListener('show-shortcuts-modal', handleShowShortcuts);
+    return () => window.removeEventListener('show-shortcuts-modal', handleShowShortcuts);
+  }, []);
 
   // Handle node changes
   const onNodesChange = useCallback((changes: NodeChange[]) => {
@@ -283,6 +303,12 @@ export const StudioComposer = () => {
           defaultEdgeOptions={defaultEdgeOptions}
           connectionMode={ConnectionMode.Loose}
           connectionLineComponent={ConnectionLine}
+          selectionOnDrag={true}
+          selectionMode={SelectionMode.Partial}
+          panOnScroll={true}
+          panOnDrag={[1, 2]}
+          selectionKeyCode="Shift"
+          multiSelectionKeyCode="Shift"
           fitView
           className="bg-studio-canvas"
           deleteKeyCode={[]} // Handle in keyboard shortcuts
@@ -293,20 +319,22 @@ export const StudioComposer = () => {
             size={1} 
             color="hsl(var(--studio-canvas-grid))" 
           />
-          <Controls />
           <MiniMap 
             nodeColor={() => 'hsl(var(--studio-node-bg))'}
             maskColor="hsla(var(--studio-canvas) / 0.9)"
           />
         </ReactFlow>
 
-        {/* Floating Toolbar */}
-        {selectedNode && (
-          <FloatingToolbar 
-            selectedNodeId={selectedNode.id}
-            position={{ x: window.innerWidth / 2, y: 80 }}
-          />
+        {/* Snap Guides */}
+        {(alignmentGuides.horizontal.length > 0 || alignmentGuides.vertical.length > 0) && (
+          <SnapGuides alignmentGuides={alignmentGuides} />
         )}
+
+        {/* Custom Zoom Controls */}
+        <StudioControls />
+
+        {/* Floating Toolbar */}
+        {selectedNode && <FloatingToolbar selectedNodeId={selectedNode.id} />}
 
         {/* Context Menus */}
         {contextMenu?.type === 'node' && (
@@ -338,6 +366,12 @@ export const StudioComposer = () => {
 
       {/* Right Properties Panel */}
       <PropertiesPanel selectedNode={selectedNode} />
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+      />
     </div>
   );
 };
