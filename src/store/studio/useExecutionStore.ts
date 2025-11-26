@@ -27,6 +27,7 @@ interface ExecutionState {
   addLog: (log: ExecutionState['logs'][0]) => void;
   addToHistory: (run: ExecutionRun) => void;
   clearExecution: () => void;
+  clearNodeError: (nodeId: string) => void;
 }
 
 export const useExecutionStore = create<ExecutionState>((set) => ({
@@ -73,5 +74,11 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
     results: {},
     errors: {},
     logs: [],
+  }),
+
+  clearNodeError: (nodeId) => set((state) => {
+    const newErrors = { ...state.errors };
+    delete newErrors[nodeId];
+    return { errors: newErrors };
   }),
 }));
