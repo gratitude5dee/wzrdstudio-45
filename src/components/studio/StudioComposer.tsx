@@ -295,7 +295,6 @@ export const StudioComposer = () => {
           fitView
           className="bg-studio-canvas"
           deleteKeyCode={[]} // Handle in keyboard shortcuts
-          onContextMenu={handleContextMenu}
           data-tour="canvas"
         >
           {/* Empty State */}
