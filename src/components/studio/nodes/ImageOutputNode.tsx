@@ -2,6 +2,7 @@ import { FC, memo, useState } from 'react';
 import { NodeProps, Position } from '@xyflow/react';
 import { Download, Shuffle, MoreHorizontal } from 'lucide-react';
 import { CustomHandle } from '../handles/CustomHandle';
+import { NodeWrapper } from './NodeWrapper';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -20,18 +21,11 @@ export const ImageOutputNode: FC<NodeProps> = memo(({ data, selected }) => {
   const gridCols = images.length === 1 ? 1 : images.length <= 4 ? 2 : 3;
 
   return (
-    <div
-      className={cn(
-        'min-w-[320px] max-w-[400px] rounded-xl overflow-hidden transition-all',
-        'bg-[#1a1a1a] border backdrop-blur-sm',
-        selected ? 'border-[#666666] shadow-xl' : 'border-[#333333]',
-        'hover:border-[#505050] hover:-translate-y-0.5'
-      )}
-    >
+    <NodeWrapper selected={selected} className="min-w-[320px] max-w-[400px]">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-[#2a2a2a] flex items-center justify-between">
-        <span className="text-sm font-medium text-[#ffffff]">{title}</span>
-        <span className="text-xs text-[#888888] truncate max-w-[120px]">{model}</span>
+      <div className="px-4 py-3 border-b border-studio-node-border flex items-center justify-between">
+        <span className="text-sm font-medium text-studio-text-primary">{title}</span>
+        <span className="text-xs text-studio-text-secondary truncate max-w-[120px]">{model}</span>
       </div>
 
       {/* Image Grid */}
@@ -78,7 +72,7 @@ export const ImageOutputNode: FC<NodeProps> = memo(({ data, selected }) => {
 
       {/* Output Handle */}
       <CustomHandle type="source" position={Position.Right} />
-    </div>
+    </NodeWrapper>
   );
 });
 

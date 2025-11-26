@@ -34,6 +34,7 @@ import { PromptInputNode } from './nodes/PromptInputNode';
 import { ReferenceNode } from './nodes/ReferenceNode';
 import { TextPromptNode } from './nodes/TextPromptNode';
 import { StudioEdge } from './edges/StudioEdge';
+import { ConnectionLine } from './edges/ConnectionLine';
 
 import { IconSidebar } from './panels/IconSidebar';
 import { PropertiesPanel } from './panels/PropertiesPanel';
@@ -258,7 +259,7 @@ export const StudioComposer = () => {
   const selectedNode = selectedNodes.length === 1 ? selectedNodes[0] : null;
 
   return (
-    <div className="h-full w-full flex bg-[#0a0a0a]">
+    <div className="h-full w-full flex bg-studio-canvas">
       {/* Slim Icon Sidebar */}
       <IconSidebar onAddNode={() => console.log('Add node clicked')} />
 
@@ -281,15 +282,21 @@ export const StudioComposer = () => {
           edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
           connectionMode={ConnectionMode.Loose}
+          connectionLineComponent={ConnectionLine}
           fitView
-          className="bg-[#0a0a0a]"
+          className="bg-studio-canvas"
           deleteKeyCode={[]} // Handle in keyboard shortcuts
         >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#1a1a1a" />
+          <Background 
+            variant={BackgroundVariant.Dots} 
+            gap={20} 
+            size={1} 
+            color="hsl(var(--studio-canvas-grid))" 
+          />
           <Controls />
           <MiniMap 
-            nodeColor={() => '#1a1a1a'}
-            maskColor="rgba(10, 10, 10, 0.9)"
+            nodeColor={() => 'hsl(var(--studio-node-bg))'}
+            maskColor="hsla(var(--studio-canvas) / 0.9)"
           />
         </ReactFlow>
 
